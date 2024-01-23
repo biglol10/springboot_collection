@@ -7,7 +7,9 @@ import com.fastcampus.programming.dmaker.dto.DeveloperDto;
 import com.fastcampus.programming.dmaker.dto.EditDeveloper;
 import com.fastcampus.programming.dmaker.entity.Developer;
 import com.fastcampus.programming.dmaker.entity.RetiredDeveloper;
+import com.fastcampus.programming.dmaker.exception.DMakerErrorCode;
 import com.fastcampus.programming.dmaker.exception.DMakerException;
+import com.fastcampus.programming.dmaker.exception.DMakerException2;
 import com.fastcampus.programming.dmaker.repository.DeveloperRepository;
 import com.fastcampus.programming.dmaker.repository.RetiredDeveloperRepository;
 import com.fastcampus.programming.dmaker.type.DeveloperLevel;
@@ -19,10 +21,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.fastcampus.programming.dmaker.exception.DMakerErrorCode.DUPLICATED_MEMBER_ID;
-import static com.fastcampus.programming.dmaker.exception.DMakerErrorCode.NO_DEVELOPER;
+import static com.fastcampus.programming.dmaker.exception.DMakerErrorCode.*;
 
 /**
  * @author Snow
@@ -85,8 +87,8 @@ public class DMakerService {
     @Transactional(readOnly = true)
     public List<DeveloperDto> getAllEmployedDevelopers() {
         return developerRepository.findDevelopersByStatusCodeEquals(
-                StatusCode.EMPLOYED
-        ).stream().map(DeveloperDto::fromEntity)
+                        StatusCode.EMPLOYED
+                ).stream().map(DeveloperDto::fromEntity)
                 .collect(Collectors.toList());
     }
 
@@ -145,7 +147,21 @@ public class DMakerService {
     private void validateCreateDeveloperRequest2(CreateDeveloper.Request request) {
         // business validation
         if (request.getDeveloperLevel() == DeveloperLevel.SENIOR && request.getExperienceYears() < 10) {
-            throw new RuntimeException("SENIOR need 10 years experience");
+//            throw new RuntimeException("SENIOR need 10 years experience");
+            throw new DMakerException2(LEVEL_EXPERIENCE_YEARS_NOT_MATCHED);
         }
+        if (request.getDeveloperLevel() == DeveloperLevel.JUNGNIOR && (request.getExperienceYears() < 4 || request.getExperienceYears() > 10)) {
+            throw new DMakerException2(LEVEL_EXPERIENCE_YEARS_NOT_MATCHED);
+        }
+
+        Optional<Developer> developer = developerRepository.findByMemberId(request.getMemberId());
+        if(developer.isPresent()) {
+            throw new DMakerException2(DUPLICATED_MEMBER_ID);
+        }
+
+        developerRepository.findByMemberId(request.getMemberId())
+                .ifPresent(developer1 -> {
+                    throw new DMakerException2(DUPLICATED_MEMBER_ID);
+                });
     }
 }

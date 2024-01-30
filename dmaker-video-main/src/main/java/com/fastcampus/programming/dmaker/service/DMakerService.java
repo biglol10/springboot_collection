@@ -49,9 +49,11 @@ public class DMakerService {
     ) {
         validateCreateDeveloperRequest(request);
 
+        Developer developerFromRequest = createDeveloperFromRequest(request);
+
         // business logic start
         return CreateDeveloper.Response.fromEntity(
-                developerRepository.save(createDeveloperFromRequest(request))
+                developerRepository.save(developerFromRequest)
         );
     }
 

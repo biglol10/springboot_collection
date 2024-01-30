@@ -52,7 +52,7 @@ public class DMakerController {
 
     @GetMapping("/developer/{memberId}")
     public DeveloperDetailDto getDeveloperDetail(
-            @PathVariable final String memberId
+            @PathVariable final String memberId  // 바꿀 수 없네 final로 지정
     ) {
         log.info("GET /developers HTTP/1.1");
 

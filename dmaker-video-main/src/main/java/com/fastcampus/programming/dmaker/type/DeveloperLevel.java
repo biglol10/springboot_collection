@@ -1,6 +1,7 @@
 package com.fastcampus.programming.dmaker.type;
 
 import com.fastcampus.programming.dmaker.exception.DMakerException;
+import com.fastcampus.programming.dmaker.exception.DMakerException2;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -28,5 +29,11 @@ public enum DeveloperLevel {
     public void validateExperienceYears(Integer years) {
         if (!validateFunction.apply(years))
             throw new DMakerException(LEVEL_EXPERIENCE_YEARS_NOT_MATCHED);
+    }
+
+    public void validateExperienceYears2(Integer years) {
+        if (!validateFunction.apply(years)) {
+            throw new DMakerException2(LEVEL_EXPERIENCE_YEARS_NOT_MATCHED);
+        }
     }
 }

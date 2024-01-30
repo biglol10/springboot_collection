@@ -1,10 +1,7 @@
 package com.fastcampus.programming.dmaker.service;
 
 import com.fastcampus.programming.dmaker.code.StatusCode;
-import com.fastcampus.programming.dmaker.dto.CreateDeveloper;
-import com.fastcampus.programming.dmaker.dto.DeveloperDetailDto;
-import com.fastcampus.programming.dmaker.dto.DeveloperDto;
-import com.fastcampus.programming.dmaker.dto.EditDeveloper;
+import com.fastcampus.programming.dmaker.dto.*;
 import com.fastcampus.programming.dmaker.entity.Developer;
 import com.fastcampus.programming.dmaker.entity.RetiredDeveloper;
 import com.fastcampus.programming.dmaker.exception.DMakerErrorCode;
@@ -92,9 +89,18 @@ public class DMakerService {
                 .collect(Collectors.toList());
     }
 
+    public List<DeveloperDto> getAllDevelopers2() {
+        return developerRepository.findAll()
+                .stream().map(DeveloperDto::fromEntity)
+                .collect(Collectors.toList());
+    }
+
     @Transactional(readOnly = true)
     public DeveloperDetailDto getDeveloperDetail(String memberId) {
-        return DeveloperDetailDto.fromEntity(getDeveloperByMemberId(memberId));
+//        return DeveloperDetailDto.fromEntity(getDeveloperByMemberId(memberId));
+        return developerRepository.findByMemberId(memberId)
+                .map(DeveloperDetailDto::fromEntity)
+                .orElseThrow(() -> new DMakerException(NO_DEVELOPER));
     }
 
     private Developer getDeveloperByMemberId(String memberId) {
@@ -115,6 +121,13 @@ public class DMakerService {
                         request, getDeveloperByMemberId(memberId)
                 )
         );
+    }
+
+    @Transactional
+    public DeveloperDetailDto editDeveloper2(String memberId, EditDeveloper.Request request) {
+        request.getDeveloperLevel().validateExperienceYears(request.getExperienceYears());
+
+        return DeveloperDetailDto.fromEntity(getUpdatedDeveloperFromRequest(request, getDeveloperByMemberId(memberId)));
     }
 
     private Developer getUpdatedDeveloperFromRequest(
@@ -143,8 +156,27 @@ public class DMakerService {
         return DeveloperDetailDto.fromEntity(developer);
     }
 
+    @Transactional
+    public CreateDeveloper2.Response createDeveloper2(CreateDeveloper2.Request request) {
+        validateCreateDeveloperRequest2(request);
 
-    private void validateCreateDeveloperRequest2(CreateDeveloper.Request request) {
+        // business login start
+        Developer developer = Developer.builder()
+                .developerLevel(request.getDeveloperLevel())
+                .developerSkillType(request.getDeveloperSkillType())
+                .experienceYears(request.getExperienceYears())
+                .memberId(request.getMemberId())
+                .name(request.getName())
+                .age(request.getAge())
+                .build();
+
+        developerRepository.save(developer);
+
+        return CreateDeveloper2.Response.fromEntity(developer);
+    }
+
+
+    private void validateCreateDeveloperRequest2(CreateDeveloper2.Request request) {
         // business validation
         if (request.getDeveloperLevel() == DeveloperLevel.SENIOR && request.getExperienceYears() < 10) {
 //            throw new RuntimeException("SENIOR need 10 years experience");
@@ -154,10 +186,12 @@ public class DMakerService {
             throw new DMakerException2(LEVEL_EXPERIENCE_YEARS_NOT_MATCHED);
         }
 
-        Optional<Developer> developer = developerRepository.findByMemberId(request.getMemberId());
-        if(developer.isPresent()) {
-            throw new DMakerException2(DUPLICATED_MEMBER_ID);
-        }
+//        Optional<Developer> developer = developerRepository.findByMemberId(request.getMemberId());
+//        boolean present = developer.isPresent();
+//
+//        if(developer.isPresent()) {
+//            throw new DMakerException2(DUPLICATED_MEMBER_ID);
+//        }
 
         developerRepository.findByMemberId(request.getMemberId())
                 .ifPresent(developer1 -> {

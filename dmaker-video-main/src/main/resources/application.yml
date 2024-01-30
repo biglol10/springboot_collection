@@ -5,7 +5,7 @@ spring:
   main:
     allow-bean-definition-overriding: true
   jpa:
-    show-sql: true
+    show-sql: true  # jpa 실행하면 쿼리문장이 나오도록
     properties:
       hibernate:
         format_sql: true

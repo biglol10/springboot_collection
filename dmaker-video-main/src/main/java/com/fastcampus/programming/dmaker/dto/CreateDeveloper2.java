@@ -1,5 +1,6 @@
 package com.fastcampus.programming.dmaker.dto;
 
+import com.fastcampus.programming.dmaker.entity.Developer;
 import com.fastcampus.programming.dmaker.type.DeveloperLevel;
 import com.fastcampus.programming.dmaker.type.DeveloperSkillType;
 import lombok.*;
@@ -46,5 +47,15 @@ public class CreateDeveloper2 {
         private DeveloperSkillType developerSkillType;
         private Integer experienceYears;
         private String memberId;
+
+        // developer 생성한 직후에 바로 디벨로퍼 엔티티를 통해서 만들어줄 것이기 때문에 developer 엔터티와 강한 결합을 하게 됨. 이럴 때 자주 쓰는 방법이 fromEntity
+        public static Response fromEntity(Developer developer) {
+            return CreateDeveloper2.Response.builder()
+                    .developerLevel(developer.getDeveloperLevel())
+                    .developerSkillType(developer.getDeveloperSkillType())
+                    .experienceYears(developer.getExperienceYears())
+                    .memberId(developer.getMemberId())
+                    .build();
+        }
     }
 }

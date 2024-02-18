@@ -7,8 +7,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.event.EventListener;
 
 @ConfigurationPropertiesScan // Configuration을 생략해버리면 Bean 스캐닝을 하지 못하니 에러 발생, configuration-property와 configuration-annotation중에 configuration-annotation을 분리할 수 있다
 @SpringBootApplication
@@ -63,6 +65,18 @@ public class FastcampusSpringBootPracticeApplication {
 
     public void abc() {
         System.out.println("[Value]: " + text);
+    }
+
+    // application이 맨 처음 실행될 때 초기화 기능들을 구현해 줄 수 있게 도와주는 기능들이 몇가지 있는데
+    // 기존에는 Command Line Runner나 Application Runner들을 사용했음
+    // Spring 4.2에서 새로 나온건 EventListener
+    // 애플리케이션 준비가 딱 끝났을 때 모든 빈을 다 읽고 Spring 컨테이너가 준비가 완료되었을 때 이벤트가 발생함
+    // @PostConstruct랑은 실행 시점이 다름
+    @EventListener(ApplicationReadyEvent.class)
+    public void init2() {
+        studentService.printStudent("jack");
+        studentService.printStudent("jack");
+        studentService.printStudent("jack");
     }
 
 }

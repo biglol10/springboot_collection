@@ -1,8 +1,8 @@
 package com.biglol.getinline.api;
 
-import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
+
+import org.springframework.web.bind.annotation.*;
 
 @RequestMapping("/api")
 @RestController

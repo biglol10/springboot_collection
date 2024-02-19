@@ -14,5 +14,4 @@ public class AuthController {
     public String singUp() {
         return "auth/sign-up";
     }
-
 }

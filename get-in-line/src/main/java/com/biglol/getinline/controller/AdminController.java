@@ -1,15 +1,15 @@
 package com.biglol.getinline.controller;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-
-import com.biglol.getinline.constant.PlaceType;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.biglol.getinline.constant.PlaceType;
 
 @RequestMapping("/admin")
 @Controller

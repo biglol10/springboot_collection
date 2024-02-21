@@ -8,8 +8,9 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class APIEventController {
     @GetMapping("/events")
-    public List<String> getEvents() {
+    public List<String> getEvents() throws Exception {
         //        throw new GeneralException("테스트 메시지");
+        //        throw new HttpRequestMethodNotSupportedException("asdf");
         return List.of("event1", "event2");
     }
 
@@ -17,6 +18,7 @@ public class APIEventController {
     public Boolean createEvent() {
         //        throw new RuntimeException("runtime 테스트 메시지"); // 이건 generalException에서 잡지 못한 에러니
         // 공통에러로 넘어감
+        //        throw new GeneralException("테스트");
         return true;
     }
 

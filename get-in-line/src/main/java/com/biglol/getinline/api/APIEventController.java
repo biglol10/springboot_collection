@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class APIEventController {
     @GetMapping("/events")
-    public List<String> getEvents() throws Exception {
+    public List<String> getEvents() {
         //        throw new GeneralException("테스트 메시지");
         //        throw new HttpRequestMethodNotSupportedException("asdf");
         return List.of("event1", "event2");

@@ -8,8 +8,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class BaseController {
     @GetMapping("/")
     public String root() throws Exception {
-        throw new Exception("테스트");
-        //        return "index";
+        //        throw new GeneralException("테스트");
+        //        throw new Exception("테스트");
+        return "index";
     }
 
     // spring boot에서 기본 동작으로 error controller 만들려고 하는데 여기에서 만든 error랑 충돌해서 에러가 발생

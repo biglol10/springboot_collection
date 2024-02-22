@@ -1,4 +1,4 @@
-package com.biglol.getinline.error;
+package com.biglol.getinline.controller.error;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;

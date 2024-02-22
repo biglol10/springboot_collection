@@ -1,4 +1,4 @@
-package com.biglol.getinline.error;
+package com.biglol.getinline.controller.error;
 
 import java.util.Map;
 
@@ -7,13 +7,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.biglol.getinline.constant.ErrorCode;
-import com.biglol.getinline.dto.APIErrorResponse;
 
 @Controller
 public class BaseErrorController implements ErrorController { // 에러가 전파됨 (ErrorController을 타고 넘어옴)
@@ -39,12 +37,13 @@ public class BaseErrorController implements ErrorController { // 에러가 전�
                 status);
     }
 
-    @RequestMapping("/error") // 이쪽에서는 json-body로 잡음
-    public ResponseEntity<APIErrorResponse> error(HttpServletResponse response) {
-        HttpStatus status = HttpStatus.valueOf(response.getStatus()); // 숫자로부터 HttpStatus객체를 만듦
-        ErrorCode errorCode =
-                status.is4xxClientError() ? ErrorCode.BAD_REQUEST : ErrorCode.INTERNAL_ERROR;
-
-        return ResponseEntity.status(status).body(APIErrorResponse.of(false, errorCode));
-    }
+    //    @RequestMapping("/error") // 이쪽에서는 json-body로 잡음
+    //    public ResponseEntity<APIErrorResponse> error(HttpServletResponse response) {
+    //        HttpStatus status = HttpStatus.valueOf(response.getStatus()); // 숫자로부터 HttpStatus객체를
+    // 만듦
+    //        ErrorCode errorCode =
+    //                status.is4xxClientError() ? ErrorCode.BAD_REQUEST : ErrorCode.INTERNAL_ERROR;
+    //
+    //        return ResponseEntity.status(status).body(APIErrorResponse.of(false, errorCode));
+    //    }
 }

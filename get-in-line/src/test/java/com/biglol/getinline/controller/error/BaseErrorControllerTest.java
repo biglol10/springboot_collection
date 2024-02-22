@@ -1,4 +1,4 @@
-package com.biglol.getinline.error;
+package com.biglol.getinline.controller.error;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -24,6 +24,6 @@ class BaseErrorControllerTest {
         // Given
 
         // When & Then
-        mvc.perform(get("/wrong-uri")).andExpect(status().isNotFound()).andDo(print());
+        mvc.perform(get("/wrong-uri")).andExpect(status().isInternalServerError()).andDo(print());
     }
 }

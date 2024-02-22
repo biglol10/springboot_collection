@@ -1,12 +1,14 @@
-package com.biglol.getinline.api;
+package com.biglol.getinline.controller.api;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import com.biglol.getinline.constant.PlaceType;
 import com.biglol.getinline.dto.APIDataResponse;
 import com.biglol.getinline.dto.PlaceDTO;
+import com.biglol.getinline.dto.PlaceRequest;
 
 @RequestMapping("/api")
 @RestController
@@ -24,15 +26,16 @@ public class APIPlaceController {
                                 "신장개업")));
     }
 
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/places")
-    public Boolean createPlace() {
-        return true;
+    public APIDataResponse<Void> createPlace(@RequestBody PlaceRequest placeRequest) {
+        return APIDataResponse.empty();
     }
 
     @GetMapping("/places/{placeId}")
-    public APIDataResponse<PlaceDTO> getPlace(@PathVariable Integer placeId) {
-        if (placeId.equals(2)) {
-            return APIDataResponse.of(null);
+    public APIDataResponse<PlaceDTO> getPlace(@PathVariable Long placeId) {
+        if (placeId.equals(2L)) {
+            return APIDataResponse.empty();
         }
 
         return APIDataResponse.of(
@@ -46,12 +49,13 @@ public class APIPlaceController {
     }
 
     @PutMapping("/places/{placeId}")
-    public Boolean modifyPlace(@PathVariable Integer placeId) {
-        return true;
+    public APIDataResponse<Void> modifyPlace(
+            @PathVariable Long placeId, @RequestBody PlaceRequest placeRequest) {
+        return APIDataResponse.empty();
     }
 
     @DeleteMapping("/places/{placeId}")
-    public Boolean removePlace(@PathVariable Integer placeId) {
-        return true;
+    public APIDataResponse<Void> removePlace(@PathVariable Long placeId) {
+        return APIDataResponse.empty();
     }
 }

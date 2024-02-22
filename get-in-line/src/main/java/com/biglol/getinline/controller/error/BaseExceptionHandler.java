@@ -1,4 +1,4 @@
-package com.biglol.getinline.error;
+package com.biglol.getinline.controller.error;
 
 import java.util.Map;
 

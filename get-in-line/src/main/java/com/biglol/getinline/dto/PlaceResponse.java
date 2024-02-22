@@ -9,7 +9,7 @@ public record PlaceResponse(
         String phoneNumber,
         Integer capacity,
         String memo) {
-    public static PlaceResponse of(
+    public static PlaceResponse of( // canonical constructor
             PlaceType placeType,
             String placeName,
             String address,

@@ -3,6 +3,10 @@ package com.biglol.getinline.controller.api;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
+
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,7 +19,12 @@ import com.biglol.getinline.dto.EventResponse;
 @RestController
 public class APIEventController {
     @GetMapping("/events")
-    public APIDataResponse<List<EventResponse>> getEvents() {
+    public APIDataResponse<List<EventResponse>> getEvents(
+            @Positive Long placeId,
+            @Size(min = 2) String eventName,
+            EventStatus eventStatus,
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime eventStartDatetime,
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime eventEndDatetime) {
         //        throw new GeneralException("테스트 메시지");
         //        throw new HttpRequestMethodNotSupportedException("asdf");
         //        return List.of("event1", "event2");

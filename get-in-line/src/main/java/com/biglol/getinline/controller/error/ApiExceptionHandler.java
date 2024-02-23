@@ -2,7 +2,7 @@ package com.biglol.getinline.controller.error;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
+//import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.WebRequest;
@@ -69,7 +69,7 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
             Exception ex,
             Object body,
             HttpHeaders headers,
-            HttpStatusCode statusCode,
+            HttpStatus statusCode,
             WebRequest request) {
         ErrorCode errorCode =
                 statusCode.is4xxClientError()

@@ -5,6 +5,9 @@ plugins {
 	id 'com.diffplug.spotless' version '6.23.3' // Spotless 플러그인
 }
 
+//id 'org.springframework.boot' version '3.2.2'
+//id 'io.spring.dependency-management' version '1.1.4'
+
 group = 'get-in-line'
 version = '0.0.1-SNAPSHOT'
 

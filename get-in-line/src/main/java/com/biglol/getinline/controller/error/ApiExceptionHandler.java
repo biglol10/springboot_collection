@@ -69,10 +69,11 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
             Exception ex,
             Object body,
             HttpHeaders headers,
-            HttpStatus statusCode,
-            WebRequest request) {
+            HttpStatus status,
+            WebRequest request)
+    {
         ErrorCode errorCode =
-                statusCode.is4xxClientError()
+                status.is4xxClientError()
                         ? ErrorCode.SPRING_BAD_REQUEST
                         : ErrorCode.SPRING_INTERNAL_ERROR;
 
@@ -81,7 +82,7 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
                 ex,
                 APIErrorResponse.of(false, errorCode.getCode(), errorCode.getMessage(ex)),
                 headers,
-                statusCode,
+                status,
                 request);
 
         // 이렇게 하면 handleExceptionInternal을 재구현했기 때문에 이 안에 있는 Abstract class, Response Entity,

@@ -5,13 +5,14 @@ import com.biglol.getinline.dto.APIDataResponse;
 import com.biglol.getinline.dto.EventRequest;
 import com.biglol.getinline.dto.EventResponse;
 import com.biglol.getinline.service.EventService;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.constraints.Positive;
-import javax.validation.constraints.Size;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;

@@ -52,6 +52,7 @@ spotless {
 }
 
 dependencies {
+	developmentOnly 'org.springframework.boot:spring-boot-devtools' // automatic restart (소스 변경 후 ctrl+f9), live reload (재시작 안하고 싶으면 빌드를 gradle이 아닌 intellij로 위임)
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-web'

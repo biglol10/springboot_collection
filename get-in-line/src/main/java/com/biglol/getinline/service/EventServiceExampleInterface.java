@@ -1,10 +1,10 @@
 package com.biglol.getinline.service;
 
-import com.biglol.getinline.constant.EventStatus;
-import com.biglol.getinline.dto.EventDTO;
-
 import java.time.LocalDateTime;
 import java.util.List;
+
+import com.biglol.getinline.constant.EventStatus;
+import com.biglol.getinline.dto.EventDTO;
 
 /**
  * 이벤트 서비스
@@ -27,6 +27,5 @@ public interface EventServiceExampleInterface {
             String eventName,
             EventStatus eventStatus,
             LocalDateTime eventStartDatetime,
-            LocalDateTime eventEndDatetime
-    );
+            LocalDateTime eventEndDatetime);
 }

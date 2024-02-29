@@ -1,50 +1,60 @@
 package com.biglol.getinline.controller.api;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+
 import com.biglol.getinline.constant.EventStatus;
 import com.biglol.getinline.dto.APIDataResponse;
 import com.biglol.getinline.dto.EventRequest;
 import com.biglol.getinline.dto.EventResponse;
 import com.biglol.getinline.service.EventService;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.Size;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
 
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
+@Slf4j
 @RequiredArgsConstructor
 @RequestMapping("/api")
 @RestController
 public class APIEventController {
     private final EventService eventService;
+
     @GetMapping("/events")
     public APIDataResponse<List<EventResponse>> getEvents(
             @Positive Long placeId,
             @Size(min = 2) String eventName,
             EventStatus eventStatus,
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime eventStartDatetime,
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime eventStartDatetime, // String 문자열로 들어간 query parameter을 local datetime으로 변환
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime eventEndDatetime) {
         //        throw new GeneralException("테스트 메시지");
         //        throw new HttpRequestMethodNotSupportedException("asdf");
         //        return List.of("event1", "event2");
 
-//        return APIDataResponse.of(
-//                List.of(
-//                        EventResponse.of(
-//                                1L,
-//                                "오후 운동",
-//                                EventStatus.OPENED,
-//                                LocalDateTime.of(2021, 1, 1, 13, 0, 0),
-//                                LocalDateTime.of(2021, 1, 1, 16, 0, 0),
-//                                0,
-//                                24,
-//                                "마스크 꼭 착용하세요")));
+        //        return APIDataResponse.of(
+        //                List.of(
+        //                        EventResponse.of(
+        //                                1L,
+        //                                "오후 운동",
+        //                                EventStatus.OPENED,
+        //                                LocalDateTime.of(2021, 1, 1, 13, 0, 0),
+        //                                LocalDateTime.of(2021, 1, 1, 16, 0, 0),
+        //                                0,
+        //                                24,
+        //                                "마스크 꼭 착용하세요")));
 
-        List<EventResponse> eventResponses = eventService.getEvents(null, null ,null, null, null).stream().map(EventResponse::from).collect(Collectors.toList());
+        List<EventResponse> eventResponses =
+                eventService.getEvents(null, null, null, null, null).stream()
+                        .map(EventResponse::from)
+                        .collect(Collectors.toList());
         return APIDataResponse.of(eventResponses);
     }
 
@@ -59,37 +69,31 @@ public class APIEventController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/events")
-    public APIDataResponse<Void> createEvent(@RequestBody EventRequest eventRequest) {
-        return APIDataResponse.empty();
+    public APIDataResponse<String> createEvent(@Valid @RequestBody EventRequest eventRequest) {
+        boolean result = eventService.createEvent(eventRequest.toDTO());
+
+        return APIDataResponse.of(Boolean.toString(result));
     }
 
     @GetMapping("/events/{eventId}")
-    public APIDataResponse<EventResponse> getEvent(@PathVariable Long eventId) {
-        if (eventId.equals(2L)) {
-            return APIDataResponse.empty();
-        }
+    public APIDataResponse<EventResponse> getEvent(@Positive @PathVariable Long eventId) {
+        EventResponse eventResponse = EventResponse.from(eventService.getEvent(eventId).orElse(null));
 
-        return APIDataResponse.of(
-                EventResponse.of(
-                        1L,
-                        "오후 운동",
-                        EventStatus.OPENED,
-                        LocalDateTime.of(2021, 1, 1, 13, 0, 0),
-                        LocalDateTime.of(2021, 1, 1, 16, 0, 0),
-                        0,
-                        24,
-                        "마스크 꼭 착용하세요"));
+        return APIDataResponse.of(eventResponse);
     }
 
     @PutMapping("/events/{eventId}")
-    public APIDataResponse<Void> modifyEvent(
-            @PathVariable Long eventId, @RequestBody EventRequest eventRequest) {
-        return APIDataResponse.empty();
+    public APIDataResponse<String> modifyEvent(
+            @Positive @PathVariable Long eventId, @Valid @RequestBody EventRequest eventRequest) {
+        boolean result = eventService.modifyEvent(eventId, eventRequest.toDTO());
+        return APIDataResponse.of(Boolean.toString(result));
     }
 
     @DeleteMapping("/events/{eventId}")
-    public APIDataResponse<Void> removeEvent(@PathVariable Long eventId) {
-        return APIDataResponse.empty();
+    public APIDataResponse<String> removeEvent(@Positive @PathVariable Long eventId) {
+        boolean result = eventService.removeEvent(eventId);
+
+        return APIDataResponse.of(Boolean.toString(result));
     }
 
     //    @ExceptionHandler // 이 ExceptionHandler는 이 컨트롤러에 있는 handler method중에서 generalException이

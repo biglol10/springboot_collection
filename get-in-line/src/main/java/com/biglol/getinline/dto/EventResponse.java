@@ -34,7 +34,9 @@ public record EventResponse(
     }
 
     public static EventResponse from(EventDTO eventDTO) {
-        if (eventDTO == null) { return null; }
+        if (eventDTO == null) {
+            return null;
+        }
         return EventResponse.of(
                 eventDTO.placeId(),
                 eventDTO.eventName(),
@@ -43,7 +45,6 @@ public record EventResponse(
                 eventDTO.eventEndDatetime(),
                 eventDTO.currentNumberOfPeople(),
                 eventDTO.capacity(),
-                eventDTO.memo()
-        );
+                eventDTO.memo());
     }
 }

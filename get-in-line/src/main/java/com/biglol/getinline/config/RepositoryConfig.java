@@ -1,8 +1,9 @@
 package com.biglol.getinline.config;
 
-import com.biglol.getinline.repository.EventRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import com.biglol.getinline.repository.EventRepository;
 
 @Configuration
 public class RepositoryConfig {

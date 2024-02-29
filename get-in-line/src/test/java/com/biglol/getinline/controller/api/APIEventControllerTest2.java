@@ -1,0 +1,193 @@
+package com.biglol.getinline.controller.api;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+import com.biglol.getinline.service.EventService;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+
+import com.biglol.getinline.constant.ErrorCode;
+import com.biglol.getinline.constant.EventStatus;
+import com.biglol.getinline.dto.EventResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+@WebMvcTest(APIEventController.class)
+class APIEventControllerTest2 {
+
+    private final MockMvc mvc;
+    private final ObjectMapper mapper;
+
+    // 아래 코드가 없으면 테스트할 때는 의존성 주입을 못함. (APIEventController에서는 EventService라는 의존성이 추가됐음)
+    // 여기에서 실제 EventService Bean을 주입하도록 코드를 구성하게 되면 이 테스트는 컨트롤러부터 서비스까지 통과해서 들어가는 테스트가 됨
+    // 그럼 integration test level이라고 봄. 그런데 여기에선 단위 테스트만 관심있음. 즉, 컨트롤러 테스트는 서비스랑 분리되어 있음
+    // 컨트롤러의 입력과 출력만 검사할거임. 그래서 실제 구현체를 주입하지 않고 mock을 주입
+    // 생성자 방식이 아닌 field주입 방식을 쓰는 이유는 생성자 방식을 지원하지 않음
+    @MockBean
+    private EventService eventService;
+
+    public APIEventControllerTest2(@Autowired MockMvc mvc, @Autowired ObjectMapper mapper) {
+        this.mvc = mvc;
+        this.mapper = mapper;
+    }
+
+    @DisplayName("[API][GET] 이벤트 리스트 조회")
+    @Test
+    void givenNothing_whenRequestingEvents_thenReturnsListOfEventsInStandardResponse()
+            throws Exception {
+        // Given
+
+        // When & Then
+        mvc.perform(get("/api/events"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data[0].placeId").value(1L))
+                .andExpect(jsonPath("$.data[0].eventName").value("오후 운동"))
+                .andExpect(jsonPath("$.data[0].eventStatus").value(EventStatus.OPENED.name()))
+                .andExpect(
+                        jsonPath("$.data[0].eventStartDatetime")
+                                .value(
+                                        LocalDateTime.of(2021, 1, 1, 13, 0, 0)
+                                                .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
+                .andExpect(
+                        jsonPath("$.data[0].eventEndDatetime")
+                                .value(
+                                        LocalDateTime.of(2021, 1, 1, 16, 0, 0)
+                                                .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
+                .andExpect(jsonPath("$.data[0].currentNumberOfPeople").value(0))
+                .andExpect(jsonPath("$.data[0].capacity").value(24))
+                .andExpect(jsonPath("$.data[0].memo").value("마스크 꼭 착용하세요"))
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.errorCode").value(ErrorCode.OK.getCode()))
+                .andExpect(jsonPath("$.message").value(ErrorCode.OK.getMessage()));
+    }
+
+    @DisplayName("[API][POST] 이벤트 생성")
+    @Test
+    void givenEvent_whenCreatingAnEvent_thenReturnsSuccessfulStandardResponse() throws Exception {
+        // Given
+        EventResponse eventResponse =
+                EventResponse.of(
+                        1L,
+                        "오후 운동",
+                        EventStatus.OPENED,
+                        LocalDateTime.of(2021, 1, 1, 13, 0, 0),
+                        LocalDateTime.of(2021, 1, 1, 16, 0, 0),
+                        0,
+                        24,
+                        "마스크 꼭 착용하세요");
+
+        // When & Then
+        mvc.perform(
+                        post("/api/events")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(mapper.writeValueAsString(eventResponse)))
+                .andExpect(status().isCreated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.errorCode").value(ErrorCode.OK.getCode()))
+                .andExpect(jsonPath("$.message").value(ErrorCode.OK.getMessage()));
+    }
+
+    @DisplayName("[API][GET] 단일 이벤트 조회 - 이벤트 있는 경우, 이벤트 데이터를 담은 표준 API 출력")
+    @Test
+    void givenEventId_whenRequestingExistentEvent_thenReturnsEventInStandardResponse()
+            throws Exception {
+        // Given
+        long eventId = 1L;
+
+        // When & Then
+        mvc.perform(get("/api/events/" + eventId))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.data").isMap())
+                .andExpect(jsonPath("$.data.placeId").value(1L))
+                .andExpect(jsonPath("$.data.eventName").value("오후 운동"))
+                .andExpect(jsonPath("$.data.eventStatus").value(EventStatus.OPENED.name()))
+                .andExpect(
+                        jsonPath("$.data.eventStartDatetime")
+                                .value(
+                                        LocalDateTime.of(2021, 1, 1, 13, 0, 0)
+                                                .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
+                .andExpect(
+                        jsonPath("$.data.eventEndDatetime")
+                                .value(
+                                        LocalDateTime.of(2021, 1, 1, 16, 0, 0)
+                                                .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
+                .andExpect(jsonPath("$.data.currentNumberOfPeople").value(0))
+                .andExpect(jsonPath("$.data.capacity").value(24))
+                .andExpect(jsonPath("$.data.memo").value("마스크 꼭 착용하세요"))
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.errorCode").value(ErrorCode.OK.getCode()))
+                .andExpect(jsonPath("$.message").value(ErrorCode.OK.getMessage()));
+    }
+
+    @DisplayName("[API][GET] 단일 이벤트 조회 - 이벤트 없는 경우, 빈 표준 API 출력")
+    @Test
+    void givenEventId_whenRequestingNonexistentEvent_thenReturnsEmptyStandardResponse()
+            throws Exception {
+        // Given
+        long eventId = 2L;
+
+        // When & Then
+        mvc.perform(get("/api/events/" + eventId))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.data").isEmpty())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.errorCode").value(ErrorCode.OK.getCode()))
+                .andExpect(jsonPath("$.message").value(ErrorCode.OK.getMessage()));
+    }
+
+    @DisplayName("[API][PUT] 이벤트 변경")
+    @Test
+    void givenEvent_whenModifyingAnEvent_thenReturnsSuccessfulStandardResponse() throws Exception {
+        // Given
+        long eventId = 1L;
+        EventResponse eventResponse =
+                EventResponse.of(
+                        1L,
+                        "오후 운동",
+                        EventStatus.OPENED,
+                        LocalDateTime.of(2021, 1, 1, 13, 0, 0),
+                        LocalDateTime.of(2021, 1, 1, 16, 0, 0),
+                        0,
+                        24,
+                        "마스크 꼭 착용하세요");
+
+        // When & Then
+        mvc.perform(
+                        put("/api/events/" + eventId)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(mapper.writeValueAsString(eventResponse)))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.errorCode").value(ErrorCode.OK.getCode()))
+                .andExpect(jsonPath("$.message").value(ErrorCode.OK.getMessage()));
+    }
+
+    @DisplayName("[API][DELETE] 이벤트 삭제")
+    @Test
+    void givenEvent_whenDeletingAnEvent_thenReturnsSuccessfulStandardResponse() throws Exception {
+        // Given
+        long eventId = 1L;
+
+        // When & Then
+        mvc.perform(delete("/api/events/" + eventId))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.errorCode").value(ErrorCode.OK.getCode()))
+                .andExpect(jsonPath("$.message").value(ErrorCode.OK.getMessage()));
+    }
+}

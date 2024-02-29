@@ -3,6 +3,7 @@ package com.biglol.getinline.controller.error;
 import java.util.Map;
 
 import jakarta.servlet.http.HttpServletResponse;
+
 import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;

@@ -3,16 +3,22 @@ package com.biglol.getinline.dto;
 import java.time.LocalDateTime;
 
 import com.biglol.getinline.constant.EventStatus;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 
 public record EventRequest(
-        Long placeId,
-        String eventName,
-        EventStatus eventStatus,
-        LocalDateTime eventStartDatetime,
-        LocalDateTime eventEndDatetime,
-        Integer currentNumberOfPeople,
-        Integer capacity,
-        String memo) {
+        @NotNull @Positive Long placeId,
+        @NotBlank String eventName,
+        @NotNull EventStatus eventStatus,
+        @NotNull LocalDateTime eventStartDatetime,
+        @NotNull LocalDateTime eventEndDatetime,
+        @NotNull @PositiveOrZero Integer currentNumberOfPeople,
+        @NotNull @Positive Integer capacity,
+        String memo
+) {
+
     public static EventRequest of(
             Long placeId,
             String eventName,
@@ -21,7 +27,8 @@ public record EventRequest(
             LocalDateTime eventEndDatetime,
             Integer currentNumberOfPeople,
             Integer capacity,
-            String memo) {
+            String memo
+    ) {
         return new EventRequest(
                 placeId,
                 eventName,
@@ -30,6 +37,23 @@ public record EventRequest(
                 eventEndDatetime,
                 currentNumberOfPeople,
                 capacity,
-                memo);
+                memo
+        );
     }
+
+    public EventDTO toDTO() {
+        return EventDTO.of(
+                this.placeId(),
+                this.eventName(),
+                this.eventStatus(),
+                this.eventStartDatetime(),
+                this.eventEndDatetime(),
+                this.currentNumberOfPeople(),
+                this.capacity(),
+                this.memo(),
+                null,
+                null
+        );
+    }
+
 }

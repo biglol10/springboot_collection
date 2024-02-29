@@ -1,9 +1,11 @@
 package com.biglol.getinline.controller.error;
 
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-//import org.springframework.http.HttpStatusCode;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
@@ -24,7 +26,20 @@ import com.biglol.getinline.exception.GeneralException;
 // 그래서 따로 처리를 해줌 (extends ResponseEntityExceptionHandler) 그러나 내부에 handleExceptionInternal 호출을 보면
 // body를 전부 null로 보냄.
 // handleExceptionInternal는 protected이니 여기에서 override해줌
-public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
+public class APIExceptionHandler extends ResponseEntityExceptionHandler {
+    @ExceptionHandler
+    public ResponseEntity<Object> validation(ConstraintViolationException e, WebRequest request) {
+        ErrorCode errorCode = ErrorCode.VALIDATION_ERROR;
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+
+        return super.handleExceptionInternal(
+                e,
+                APIErrorResponse.of(false, errorCode.getCode(), errorCode.getMessage(e)),
+                HttpHeaders.EMPTY,
+                status,
+                request);
+    }
+
     // general용
     // 원래 return ResponseEntity.status(status).body(APIErrorResponse.of(false, errorCode,
     // errorCode.getMessage(e))); 였지만
@@ -67,11 +82,10 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     @Override
     protected ResponseEntity<Object> handleExceptionInternal(
             Exception ex,
-            Object body,
+            @Nullable Object body,
             HttpHeaders headers,
-            HttpStatus status,
-            WebRequest request)
-    {
+            HttpStatusCode status,
+            WebRequest request) {
         ErrorCode errorCode =
                 status.is4xxClientError()
                         ? ErrorCode.SPRING_BAD_REQUEST

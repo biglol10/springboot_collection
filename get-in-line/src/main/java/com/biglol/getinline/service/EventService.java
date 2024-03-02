@@ -59,7 +59,7 @@ public class EventService {
         return eventRepository.insertEvent(eventDTO);
     }
 
-    public boolean modifyEvent(Long eventId, EventDTO eventDTO) {
+    public boolean modifyEvent(Long eventIㄱd, EventDTO eventDTO) {
         return eventRepository.updateEvent(eventId, eventDTO);
     }
 

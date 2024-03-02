@@ -74,10 +74,10 @@ public class Place {
     @OneToMany(mappedBy = "place")
     private final Set<Event> events = new LinkedHashSet<>();
 
-    @ToString.Exclude
-    @OrderBy("id")
-    @OneToMany(mappedBy = "place")
-    private final Set<AdminPlaceMap> adminPlaceMaps = new LinkedHashSet<>();
+//    @ToString.Exclude
+//    @OrderBy("id")
+//    @OneToMany(mappedBy = "place")
+//    private final Set<AdminPlaceMap> adminPlaceMaps = new LinkedHashSet<>();
 
 
     protected Place() {}

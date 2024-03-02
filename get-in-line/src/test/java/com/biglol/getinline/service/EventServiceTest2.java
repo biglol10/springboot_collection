@@ -10,7 +10,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.biglol.getinline.constant.EventStatus;
-import com.biglol.getinline.dto.EventDTO;
+import com.biglol.getinline.dto.EventDto;
 
 class EventServiceTest2 {
     private EventService sut; // system under test
@@ -27,7 +27,7 @@ class EventServiceTest2 {
         // GIVEN
 
         // WHEN
-        List<EventDTO> list = sut.getEvents(null, null, null, null, null);
+        List<EventDto> list = sut.getEvents(null, null, null, null, null);
 
         // THEN
         assertThat(list).hasSize(2);
@@ -44,7 +44,7 @@ class EventServiceTest2 {
         LocalDateTime eventEndDatetime = LocalDateTime.of(2021, 1, 1, 16, 0, 0);
 
         // WHEN
-        List<EventDTO> list =
+        List<EventDto> list =
                 sut.getEvents(
                         eventId, eventName, eventStatus, eventStartDatetime, eventEndDatetime);
 
@@ -67,10 +67,10 @@ class EventServiceTest2 {
     void givenEventId_whenSearchingExistingEvent_thenReturnsEvent() {
         // GIVEN
         long eventId = 1L;
-        EventDTO eventDTO = createEventDTO(eventId, "오전 운동", true);
+        EventDto eventDTO = createEventDTO(eventId, "오전 운동", true);
 
         // WHEN
-        Optional<EventDTO> result = sut.getEvent(eventId);
+        Optional<EventDto> result = sut.getEvent(eventId);
 
         // THEN
         assertThat(result).isEmpty();
@@ -80,7 +80,7 @@ class EventServiceTest2 {
     @Test
     void givenEventIdAndItsInfo_whenModifying_thenModifiesEventAndReturnsTrue() {
         long eventId = 1L;
-        EventDTO dto = createEventDTO(1L, "오후 운동", false);
+        EventDto dto = createEventDTO(1L, "오후 운동", false);
 
         boolean result = sut.modifyEvent(eventId, dto);
 
@@ -90,7 +90,7 @@ class EventServiceTest2 {
     @DisplayName("이벤트 ID를 주지 않으면, 이벤트 정보를 변경 중단하고 결과를 false로 보여준다")
     @Test
     void givenNoEventId_whenModifying_thenAbortModifyingAndReturnsFalse() {
-        EventDTO dto = createEventDTO(1L, "오후 운동", false);
+        EventDto dto = createEventDTO(1L, "오후 운동", false);
 
         boolean result = sut.modifyEvent(null, dto);
 
@@ -107,7 +107,7 @@ class EventServiceTest2 {
         assertThat(result).isFalse();
     }
 
-    private EventDTO createEventDTO(long placeId, String eventName, boolean isMorning) {
+    private EventDto createEventDTO(long placeId, String eventName, boolean isMorning) {
         String hourStart = isMorning ? "09" : "13";
         String hourEnd = isMorning ? "12" : "16";
 
@@ -119,13 +119,13 @@ class EventServiceTest2 {
                 LocalDateTime.parse("2021-01-01T%s:00:00".formatted(hourEnd)));
     }
 
-    private EventDTO createEventDTO(
+    private EventDto createEventDTO(
             long placeId,
             String eventName,
             EventStatus eventStatus,
             LocalDateTime eventStartDateTime,
             LocalDateTime eventEndDateTime) {
-        return EventDTO.of(
+        return EventDto.of(
                 placeId,
                 eventName,
                 eventStatus,

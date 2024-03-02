@@ -5,46 +5,55 @@ import java.time.LocalDateTime;
 import com.biglol.getinline.constant.EventStatus;
 
 public record EventResponse(
-        Long placeId,
+        Long id,
+        PlaceDto place,
         String eventName,
         EventStatus eventStatus,
         LocalDateTime eventStartDatetime,
         LocalDateTime eventEndDatetime,
         Integer currentNumberOfPeople,
         Integer capacity,
-        String memo) {
+        String memo
+) {
+
     public static EventResponse of(
-            Long placeId,
+            Long id,
+            PlaceDto place,
             String eventName,
             EventStatus eventStatus,
             LocalDateTime eventStartDatetime,
             LocalDateTime eventEndDatetime,
             Integer currentNumberOfPeople,
             Integer capacity,
-            String memo) {
+            String memo
+    ) {
         return new EventResponse(
-                placeId,
+                id,
+                place,
                 eventName,
                 eventStatus,
                 eventStartDatetime,
                 eventEndDatetime,
                 currentNumberOfPeople,
                 capacity,
-                memo);
+                memo
+        );
     }
 
-    public static EventResponse from(EventDTO eventDTO) {
-        if (eventDTO == null) {
-            return null;
-        }
+    public static EventResponse from(EventDto eventDTO) {
+        if (eventDTO == null) { return null; }
         return EventResponse.of(
-                eventDTO.placeId(),
+                eventDTO.id(),
+                eventDTO.placeDto(),
                 eventDTO.eventName(),
                 eventDTO.eventStatus(),
                 eventDTO.eventStartDatetime(),
                 eventDTO.eventEndDatetime(),
                 eventDTO.currentNumberOfPeople(),
                 eventDTO.capacity(),
-                eventDTO.memo());
+                eventDTO.memo()
+        );
     }
+
 }
+

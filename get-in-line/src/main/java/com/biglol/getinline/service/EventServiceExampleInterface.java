@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.biglol.getinline.constant.EventStatus;
-import com.biglol.getinline.dto.EventDTO;
+import com.biglol.getinline.dto.EventDto;
 
 /**
  * 이벤트 서비스
@@ -22,7 +22,7 @@ public interface EventServiceExampleInterface {
      * @param eventEndDatetime 종료시간
      * @return
      */
-    List<EventDTO> findEvents(
+    List<EventDto> findEvents(
             Long placeId,
             String eventName,
             EventStatus eventStatus,

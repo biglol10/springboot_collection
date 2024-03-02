@@ -1,13 +1,7 @@
 package com.biglol.getinline.repository;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-
-import com.biglol.getinline.constant.EventStatus;
 import com.biglol.getinline.domain.Event;
 import com.biglol.getinline.domain.QEvent;
-import com.biglol.getinline.dto.EventDTO;
 import com.querydsl.core.types.dsl.ComparableExpression;
 import com.querydsl.core.types.dsl.StringExpression;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.biglol.getinline.constant.PlaceType;
 import com.biglol.getinline.dto.APIDataResponse;
-import com.biglol.getinline.dto.PlaceDTO;
+import com.biglol.getinline.dto.PlaceDto;
 import com.biglol.getinline.dto.PlaceRequest;
 
 /**
@@ -21,18 +21,18 @@ import com.biglol.getinline.dto.PlaceRequest;
 //@RequestMapping("/api")
 //@RestController
 public class APIPlaceController {
-    @GetMapping("/places")
-    public APIDataResponse<List<PlaceDTO>> getPlaces() {
-        return APIDataResponse.of(
-                List.of(
-                        PlaceDTO.of(
-                                PlaceType.COMMON,
-                                "랄라배드민턴장",
-                                "서울시 강남구 강남대로 1234",
-                                "010-1234-5678",
-                                30,
-                                "신장개업")));
-    }
+//    @GetMapping("/places")
+//    public APIDataResponse<List<PlaceDto>> getPlaces() {
+//        return APIDataResponse.of(
+//                List.of(
+//                        PlaceDto.of(
+//                                PlaceType.COMMON,
+//                                "랄라배드민턴장",
+//                                "서울시 강남구 강남대로 1234",
+//                                "010-1234-5678",
+//                                30,
+//                                "신장개업")));
+//    }
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/places")
@@ -40,21 +40,21 @@ public class APIPlaceController {
         return APIDataResponse.empty();
     }
 
-    @GetMapping("/places/{placeId}")
-    public APIDataResponse<PlaceDTO> getPlace(@PathVariable Long placeId) {
-        if (placeId.equals(2L)) {
-            return APIDataResponse.empty();
-        }
-
-        return APIDataResponse.of(
-                PlaceDTO.of(
-                        PlaceType.COMMON,
-                        "랄라배드민턴장",
-                        "서울시 강남구 강남대로 1234",
-                        "010-1234-5678",
-                        30,
-                        "신장개업"));
-    }
+//    @GetMapping("/places/{placeId}")
+//    public APIDataResponse<PlaceDto> getPlace(@PathVariable Long placeId) {
+//        if (placeId.equals(2L)) {
+//            return APIDataResponse.empty();
+//        }
+//
+//        return APIDataResponse.of(
+//                PlaceDto.of(
+//                        PlaceType.COMMON,
+//                        "랄라배드민턴장",
+//                        "서울시 강남구 강남대로 1234",
+//                        "010-1234-5678",
+//                        30,
+//                        "신장개업"));
+//    }
 
     @PutMapping("/places/{placeId}")
     public APIDataResponse<Void> modifyPlace(

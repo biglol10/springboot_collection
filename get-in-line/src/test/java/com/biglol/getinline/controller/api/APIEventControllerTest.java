@@ -2,7 +2,7 @@ package com.biglol.getinline.controller.api;
 
 import com.biglol.getinline.constant.ErrorCode;
 import com.biglol.getinline.constant.EventStatus;
-import com.biglol.getinline.dto.EventDTO;
+import com.biglol.getinline.dto.EventDto;
 import com.biglol.getinline.dto.EventResponse;
 import com.biglol.getinline.service.EventService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -322,8 +322,8 @@ class APIEventControllerTest {
     }
 
 
-    private EventDTO createEventDTO() {
-        return EventDTO.of(
+    private EventDto createEventDTO() {
+        return EventDto.of(
                 1L,
                 "오후 운동",
                 EventStatus.OPENED,

@@ -19,7 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.biglol.getinline.constant.ErrorCode;
 import com.biglol.getinline.constant.EventStatus;
-import com.biglol.getinline.dto.EventDTO;
+import com.biglol.getinline.dto.EventDto;
 import com.biglol.getinline.exception.GeneralException;
 import com.biglol.getinline.repository.EventRepository;
 
@@ -45,7 +45,7 @@ class EventServiceTest {
                                 createEventDTO(1L, "오후 운동", false)));
 
         // When
-        List<EventDTO> list = sut.getEvents(null, null, null, null, null);
+        List<EventDto> list = sut.getEvents(null, null, null, null, null);
 
         // Then
         assertThat(list).hasSize(2);
@@ -81,7 +81,7 @@ class EventServiceTest {
                                         eventEndDatetime)));
 
         // When
-        List<EventDTO> list =
+        List<EventDto> list =
                 sut.getEvents(
                         placeId, eventName, eventStatus, eventStartDatetime, eventEndDatetime);
 
@@ -126,11 +126,11 @@ class EventServiceTest {
     void givenEventId_whenSearchingExistingEvent_thenReturnsEvent() {
         // Given
         long eventId = 1L;
-        EventDTO eventDTO = createEventDTO(1L, "오전 운동", true);
+        EventDto eventDTO = createEventDTO(1L, "오전 운동", true);
         given(eventRepository.findEvent(eventId)).willReturn(Optional.of(eventDTO));
 
         // When
-        Optional<EventDTO> result = sut.getEvent(eventId);
+        Optional<EventDto> result = sut.getEvent(eventId);
 
         // Then
         assertThat(result).hasValue(eventDTO);
@@ -145,7 +145,7 @@ class EventServiceTest {
         given(eventRepository.findEvent(eventId)).willReturn(Optional.empty());
 
         // When
-        Optional<EventDTO> result = sut.getEvent(eventId);
+        Optional<EventDto> result = sut.getEvent(eventId);
 
         // Then
         assertThat(result).isEmpty();
@@ -173,7 +173,7 @@ class EventServiceTest {
     @Test
     void givenEvent_whenCreating_thenCreatesEventAndReturnsTrue() {
         // Given
-        EventDTO dto = createEventDTO(1L, "오후 운동", false);
+        EventDto dto = createEventDTO(1L, "오후 운동", false);
         given(eventRepository.insertEvent(dto)).willReturn(true);
 
         // When
@@ -220,7 +220,7 @@ class EventServiceTest {
     void givenEventIdAndItsInfo_whenModifying_thenModifiesEventAndReturnsTrue() {
         // Given
         long eventId = 1L;
-        EventDTO dto = createEventDTO(1L, "오후 운동", false);
+        EventDto dto = createEventDTO(1L, "오후 운동", false);
         given(eventRepository.updateEvent(eventId, dto)).willReturn(true);
 
         // When
@@ -235,7 +235,7 @@ class EventServiceTest {
     @Test
     void givenNoEventId_whenModifying_thenAbortModifyingAndReturnsFalse() {
         // Given
-        EventDTO dto = createEventDTO(1L, "오후 운동", false);
+        EventDto dto = createEventDTO(1L, "오후 운동", false);
         given(eventRepository.updateEvent(null, dto)).willReturn(false);
 
         // When
@@ -324,7 +324,7 @@ class EventServiceTest {
         then(eventRepository).should().deleteEvent(any());
     }
 
-    private EventDTO createEventDTO(long placeId, String eventName, boolean isMorning) {
+    private EventDto createEventDTO(long placeId, String eventName, boolean isMorning) {
         String hourStart = isMorning ? "09" : "13";
         String hourEnd = isMorning ? "12" : "16";
 
@@ -336,13 +336,13 @@ class EventServiceTest {
                 LocalDateTime.parse("2021-01-01T%s:00:00".formatted(hourEnd)));
     }
 
-    private EventDTO createEventDTO(
+    private EventDto createEventDTO(
             long placeId,
             String eventName,
             EventStatus eventStatus,
             LocalDateTime eventStartDateTime,
             LocalDateTime eventEndDateTime) {
-        return EventDTO.of(
+        return EventDto.of(
                 placeId,
                 eventName,
                 eventStatus,

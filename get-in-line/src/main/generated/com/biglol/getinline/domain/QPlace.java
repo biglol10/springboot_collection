@@ -22,8 +22,6 @@ public class QPlace extends EntityPathBase<Place> {
 
     public final StringPath address = createString("address");
 
-    public final SetPath<AdminPlaceMap, QAdminPlaceMap> adminPlaceMaps = this.<AdminPlaceMap, QAdminPlaceMap>createSet("adminPlaceMaps", AdminPlaceMap.class, QAdminPlaceMap.class, PathInits.DIRECT2);
-
     public final NumberPath<Integer> capacity = createNumber("capacity", Integer.class);
 
     public final DateTimePath<java.time.LocalDateTime> createdAt = createDateTime("createdAt", java.time.LocalDateTime.class);

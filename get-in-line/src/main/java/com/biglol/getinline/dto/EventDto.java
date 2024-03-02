@@ -17,8 +17,7 @@ public record EventDto(
         Integer capacity,
         String memo,
         LocalDateTime createdAt,
-        LocalDateTime modifiedAt
-) {
+        LocalDateTime modifiedAt) {
 
     public static EventDto of(
             Long id,
@@ -31,8 +30,7 @@ public record EventDto(
             Integer capacity,
             String memo,
             LocalDateTime createdAt,
-            LocalDateTime modifiedAt
-    ) {
+            LocalDateTime modifiedAt) {
         return new EventDto(
                 id,
                 placeDto,
@@ -44,8 +42,7 @@ public record EventDto(
                 capacity,
                 memo,
                 createdAt,
-                modifiedAt
-        );
+                modifiedAt);
     }
 
     public static EventDto of(Event event) {
@@ -60,8 +57,7 @@ public record EventDto(
                 event.getCapacity(),
                 event.getMemo(),
                 event.getCreatedAt(),
-                event.getModifiedAt()
-        );
+                event.getModifiedAt());
     }
 
     public Event toEntity(Place place) {
@@ -73,18 +69,31 @@ public record EventDto(
                 eventEndDatetime,
                 currentNumberOfPeople,
                 capacity,
-                memo
-        );
+                memo);
     }
 
     public Event updateEntity(Event event) {
-        if (eventName != null) { event.setEventName(eventName); }
-        if (eventStatus != null) { event.setEventStatus(eventStatus); }
-        if (eventStartDatetime != null) { event.setEventStartDatetime(eventStartDatetime); }
-        if (eventEndDatetime != null) { event.setEventEndDatetime(eventEndDatetime); }
-        if (currentNumberOfPeople != null) { event.setCurrentNumberOfPeople(currentNumberOfPeople); }
-        if (capacity != null) { event.setCapacity(capacity); }
-        if (memo != null) { event.setMemo(memo); }
+        if (eventName != null) {
+            event.setEventName(eventName);
+        }
+        if (eventStatus != null) {
+            event.setEventStatus(eventStatus);
+        }
+        if (eventStartDatetime != null) {
+            event.setEventStartDatetime(eventStartDatetime);
+        }
+        if (eventEndDatetime != null) {
+            event.setEventEndDatetime(eventEndDatetime);
+        }
+        if (currentNumberOfPeople != null) {
+            event.setCurrentNumberOfPeople(currentNumberOfPeople);
+        }
+        if (capacity != null) {
+            event.setCapacity(capacity);
+        }
+        if (memo != null) {
+            event.setMemo(memo);
+        }
 
         return event;
     }

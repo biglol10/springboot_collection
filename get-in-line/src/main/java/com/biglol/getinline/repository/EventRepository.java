@@ -1,20 +1,45 @@
 package com.biglol.getinline.repository;
 
-import com.biglol.getinline.domain.Event;
-import com.biglol.getinline.domain.QEvent;
-import com.querydsl.core.types.dsl.ComparableExpression;
-import com.querydsl.core.types.dsl.StringExpression;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
 import org.springframework.data.querydsl.binding.QuerydslBindings;
 
+import com.biglol.getinline.constant.EventStatus;
+import com.biglol.getinline.domain.Event;
+import com.biglol.getinline.domain.QEvent;
+import com.querydsl.core.types.dsl.ComparableExpression;
+import com.querydsl.core.types.dsl.StringExpression;
+
 // QuerydslPredicateExecutor는 모든 필드들을 부분적으로 검색할 수 있게 해줌
-public interface EventRepository extends JpaRepository<Event, Long>, QuerydslPredicateExecutor<Event>, QuerydslBinderCustomizer<QEvent> {
+public interface EventRepository
+        extends JpaRepository<
+                        Event,
+                        Long>, // JpaRepository대신 EventReadOnlyRepository로 변경 가능 (조회 기능만 넣고 싶으면)
+                QuerydslPredicateExecutor<Event>,
+                QuerydslBinderCustomizer<QEvent> {
+    //    @Query("select e from Event e where eventName = :eventName and eventStatus =
+    // :eventStatus")
+    List<Event> findByEventNameAndEventStatus(
+            String eventName,
+            EventStatus eventStatus); // 쿼리 메소드. dynamic query는 안됨. 값을 안 넣었을 때 전체검색과 같은 행위 안됨
+
+    // 안 넣으면 is null로 됨. join도 안됨. 이건 순서 기반으로 되는데 그게 싫으면 @Param("eventName") String eventName하면 됨
+    Optional<Event> findFirstByEventEndDatetimeBetween(LocalDateTime from, LocalDateTime to);
+
     @Override
     default void customize(QuerydslBindings bindings, QEvent root) {
         bindings.excludeUnlistedProperties(true);
-        bindings.including(root.place.placeName, root.eventName, root.eventStatus, root.eventStartDatetime, root.eventEndDatetime);
+        bindings.including(
+                root.place.placeName,
+                root.eventName,
+                root.eventStatus,
+                root.eventStartDatetime,
+                root.eventEndDatetime);
         bindings.bind(root.place.placeName).first(StringExpression::containsIgnoreCase);
         bindings.bind(root.eventName).first(StringExpression::containsIgnoreCase);
         bindings.bind(root.eventStartDatetime).first(ComparableExpression::goe);
@@ -22,11 +47,10 @@ public interface EventRepository extends JpaRepository<Event, Long>, QuerydslPre
     }
 }
 
-
 //// TODO: 인스턴스 설정 관리를 위해 임시로 default 사용. repository layer 구현이 완성되면 삭제
 //// default를 해두면 RepositoryConfig에서 eventRepository 만들 때 익명 클래스 만들 때 이 안의 내부 구현을 원래 다 해줘야 됨. 그런데
 //// default로 미리 다 넣어놨으니 그런 부분없이 깔끔하게 되는 꼼수 같은거임
-//public interface EventRepository {
+// public interface EventRepository {
 //    default List<EventDTO> findEvents(
 //            Long placeId,
 //            String eventName,
@@ -51,4 +75,4 @@ public interface EventRepository extends JpaRepository<Event, Long>, QuerydslPre
 //    default boolean deleteEvent(Long eventId) {
 //        return false;
 //    }
-//}
+// }

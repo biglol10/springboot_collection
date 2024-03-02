@@ -6,7 +6,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-import com.biglol.getinline.service.EventService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +17,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.biglol.getinline.constant.ErrorCode;
 import com.biglol.getinline.constant.EventStatus;
 import com.biglol.getinline.dto.EventResponse;
+import com.biglol.getinline.service.EventService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @WebMvcTest(APIEventController.class)
@@ -31,8 +31,7 @@ class APIEventControllerTest2 {
     // 그럼 integration test level이라고 봄. 그런데 여기에선 단위 테스트만 관심있음. 즉, 컨트롤러 테스트는 서비스랑 분리되어 있음
     // 컨트롤러의 입력과 출력만 검사할거임. 그래서 실제 구현체를 주입하지 않고 mock을 주입
     // 생성자 방식이 아닌 field주입 방식을 쓰는 이유는 생성자 방식을 지원하지 않음
-    @MockBean
-    private EventService eventService;
+    @MockBean private EventService eventService;
 
     public APIEventControllerTest2(@Autowired MockMvc mvc, @Autowired ObjectMapper mapper) {
         this.mvc = mvc;

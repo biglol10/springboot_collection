@@ -2,11 +2,12 @@ package com.biglol.getinline.dto;
 
 import java.time.LocalDateTime;
 
-import com.biglol.getinline.constant.EventStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
+
+import com.biglol.getinline.constant.EventStatus;
 
 public record EventRequest(
         @NotNull @Positive Long placeId,
@@ -16,8 +17,7 @@ public record EventRequest(
         @NotNull LocalDateTime eventEndDatetime,
         @NotNull @PositiveOrZero Integer currentNumberOfPeople,
         @NotNull @Positive Integer capacity,
-        String memo
-) {
+        String memo) {
 
     public static EventRequest of(
             Long placeId,
@@ -27,8 +27,7 @@ public record EventRequest(
             LocalDateTime eventEndDatetime,
             Integer currentNumberOfPeople,
             Integer capacity,
-            String memo
-    ) {
+            String memo) {
         return new EventRequest(
                 placeId,
                 eventName,
@@ -37,8 +36,7 @@ public record EventRequest(
                 eventEndDatetime,
                 currentNumberOfPeople,
                 capacity,
-                memo
-        );
+                memo);
     }
 
     public EventDto toDTO() {
@@ -53,8 +51,6 @@ public record EventRequest(
                 this.capacity(),
                 this.memo(),
                 null,
-                null
-        );
+                null);
     }
-
 }

@@ -5,15 +5,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.StreamSupport;
 
-import com.biglol.getinline.constant.ErrorCode;
-import com.biglol.getinline.domain.Place;
-import com.biglol.getinline.exception.GeneralException;
-import com.querydsl.core.types.Predicate;
 import org.springframework.stereotype.Service;
 
+import com.biglol.getinline.constant.ErrorCode;
 import com.biglol.getinline.constant.EventStatus;
 import com.biglol.getinline.dto.EventDto;
+import com.biglol.getinline.exception.GeneralException;
 import com.biglol.getinline.repository.EventRepository;
+import com.querydsl.core.types.Predicate;
 
 import lombok.RequiredArgsConstructor;
 
@@ -22,39 +21,41 @@ import lombok.RequiredArgsConstructor;
 public class EventService {
 
     private final EventRepository eventRepository;
-//
-//    public List<EventDto> getEvents(
-//            Long placeId,
-//            String eventName,
-//            EventStatus eventStatus,
-//            LocalDateTime eventStartDatetime,
-//            LocalDateTime eventEndDatetime) {
-////        return List.of(
-////                EventDTO.of(
-////                        1L,
-////                        "오후 운동",
-////                        EventStatus.OPENED,
-////                        LocalDateTime.parse("2021-01-01T00:00:00"),
-////                        LocalDateTime.parse("2021-02-01T00:00:00"),
-////                        0,
-////                        24,
-////                        "마스크 꼭 착용하세요",
-////                        LocalDateTime.now(),
-////                        LocalDateTime.now()),
-////                EventDTO.of(
-////                        1L,
-////                        "오후 운동2",
-////                        EventStatus.OPENED,
-////                        LocalDateTime.parse("2021-03-01T00:00:00"),
-////                        LocalDateTime.parse("2021-04-01T00:00:00"),
-////                        0,
-////                        24,
-////                        "마스크 꼭 착용하세요",
-////                        LocalDateTime.now(),
-////                        LocalDateTime.now()));
-//
-//        return eventRepository.findEvents(placeId, eventName, eventStatus, eventStartDatetime, eventEndDatetime);
-//    }
+
+    //
+    //    public List<EventDto> getEvents(
+    //            Long placeId,
+    //            String eventName,
+    //            EventStatus eventStatus,
+    //            LocalDateTime eventStartDatetime,
+    //            LocalDateTime eventEndDatetime) {
+    ////        return List.of(
+    ////                EventDTO.of(
+    ////                        1L,
+    ////                        "오후 운동",
+    ////                        EventStatus.OPENED,
+    ////                        LocalDateTime.parse("2021-01-01T00:00:00"),
+    ////                        LocalDateTime.parse("2021-02-01T00:00:00"),
+    ////                        0,
+    ////                        24,
+    ////                        "마스크 꼭 착용하세요",
+    ////                        LocalDateTime.now(),
+    ////                        LocalDateTime.now()),
+    ////                EventDTO.of(
+    ////                        1L,
+    ////                        "오후 운동2",
+    ////                        EventStatus.OPENED,
+    ////                        LocalDateTime.parse("2021-03-01T00:00:00"),
+    ////                        LocalDateTime.parse("2021-04-01T00:00:00"),
+    ////                        0,
+    ////                        24,
+    ////                        "마스크 꼭 착용하세요",
+    ////                        LocalDateTime.now(),
+    ////                        LocalDateTime.now()));
+    //
+    //        return eventRepository.findEvents(placeId, eventName, eventStatus, eventStartDatetime,
+    // eventEndDatetime);
+    //    }
 
     public List<EventDto> getEvents(Predicate predicate) {
         try {
@@ -71,8 +72,7 @@ public class EventService {
             String eventName,
             EventStatus eventStatus,
             LocalDateTime eventStartDatetime,
-            LocalDateTime eventEndDatetime
-    ) {
+            LocalDateTime eventEndDatetime) {
         try {
             return null;
         } catch (Exception e) {
@@ -93,10 +93,10 @@ public class EventService {
             if (eventDTO == null) {
                 return false;
             }
-//
-//            Place place = placeRepository.findById(eventDTO.placeDto().id())
-//                    .orElseThrow(() -> new GeneralException(ErrorCode.NOT_FOUND));
-//            eventRepository.save(eventDTO.toEntity(place));
+            //
+            //            Place place = placeRepository.findById(eventDTO.placeDto().id())
+            //                    .orElseThrow(() -> new GeneralException(ErrorCode.NOT_FOUND));
+            //            eventRepository.save(eventDTO.toEntity(place));
             return true;
         } catch (Exception e) {
             throw new GeneralException(ErrorCode.DATA_ACCESS_ERROR, e);
@@ -109,7 +109,8 @@ public class EventService {
                 return false;
             }
 
-            eventRepository.findById(eventId)
+            eventRepository
+                    .findById(eventId)
                     .ifPresent(event -> eventRepository.save(dto.updateEntity(event)));
 
             return true;
@@ -131,19 +132,19 @@ public class EventService {
         }
     }
 
-//    public Optional<EventDto> getEvent(Long eventId) {
-//        return eventRepository.findEvent(eventId);
-//    }
-//
-//    public boolean createEvent(EventDto eventDTO) {
-//        return eventRepository.insertEvent(eventDTO);
-//    }
-//
-//    public boolean modifyEvent(Long eventIㄱd, EventDto eventDTO) {
-//        return eventRepository.updateEvent(eventId, eventDTO);
-//    }
-//
-//    public boolean removeEvent(Long eventId) {
-//        return eventRepository.deleteEvent(eventId);
-//    }
+    //    public Optional<EventDto> getEvent(Long eventId) {
+    //        return eventRepository.findEvent(eventId);
+    //    }
+    //
+    //    public boolean createEvent(EventDto eventDTO) {
+    //        return eventRepository.insertEvent(eventDTO);
+    //    }
+    //
+    //    public boolean modifyEvent(Long eventIㄱd, EventDto eventDTO) {
+    //        return eventRepository.updateEvent(eventId, eventDTO);
+    //    }
+    //
+    //    public boolean removeEvent(Long eventId) {
+    //        return eventRepository.deleteEvent(eventId);
+    //    }
 }

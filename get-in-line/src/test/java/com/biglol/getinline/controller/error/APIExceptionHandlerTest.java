@@ -1,9 +1,11 @@
 package com.biglol.getinline.controller.error;
 
-import com.biglol.getinline.constant.ErrorCode;
-import com.biglol.getinline.dto.APIErrorResponse;
-import com.biglol.getinline.exception.GeneralException;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.Set;
+
 import jakarta.validation.ConstraintViolationException;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,10 +16,9 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.handler.DispatcherServletWebRequest;
 
-
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import com.biglol.getinline.constant.ErrorCode;
+import com.biglol.getinline.dto.APIErrorResponse;
+import com.biglol.getinline.exception.GeneralException;
 
 class APIExceptionHandlerTest {
 
@@ -41,7 +42,8 @@ class APIExceptionHandlerTest {
 
         // Then
         assertThat(response)
-                .hasFieldOrPropertyWithValue("body", APIErrorResponse.of(false, ErrorCode.VALIDATION_ERROR, e))
+                .hasFieldOrPropertyWithValue(
+                        "body", APIErrorResponse.of(false, ErrorCode.VALIDATION_ERROR, e))
                 .hasFieldOrPropertyWithValue("headers", HttpHeaders.EMPTY)
                 .hasFieldOrPropertyWithValue("statusCode", HttpStatus.BAD_REQUEST);
     }
@@ -74,9 +76,9 @@ class APIExceptionHandlerTest {
 
         // Then
         assertThat(response)
-                .hasFieldOrPropertyWithValue("body", APIErrorResponse.of(false, ErrorCode.INTERNAL_ERROR, e))
+                .hasFieldOrPropertyWithValue(
+                        "body", APIErrorResponse.of(false, ErrorCode.INTERNAL_ERROR, e))
                 .hasFieldOrPropertyWithValue("headers", HttpHeaders.EMPTY)
                 .hasFieldOrPropertyWithValue("statusCode", HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
 }

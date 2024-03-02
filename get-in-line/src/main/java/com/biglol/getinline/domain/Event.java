@@ -1,27 +1,31 @@
 package com.biglol.getinline.domain;
 
-import com.biglol.getinline.constant.EventStatus;
+import java.time.LocalDateTime;
+import java.util.Objects;
+
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.format.annotation.DateTimeFormat;
 
-import java.time.LocalDateTime;
-import java.util.Objects;
+import com.biglol.getinline.constant.EventStatus;
+
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 @Getter
 @ToString
-@Table(indexes = {
-        @Index(columnList = "eventName"),
-        @Index(columnList = "eventStartDatetime"),
-        @Index(columnList = "eventEndDatetime"),
-        @Index(columnList = "createdAt"),
-        @Index(columnList = "modifiedAt")
-})
+@Table(
+        indexes = {
+            @Index(columnList = "eventName"),
+            @Index(columnList = "eventStartDatetime"),
+            @Index(columnList = "eventEndDatetime"),
+            @Index(columnList = "createdAt"),
+            @Index(columnList = "modifiedAt")
+        })
 @EntityListeners(AuditingEntityListener.class)
 @Entity
 public class Event {
@@ -29,7 +33,6 @@ public class Event {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
 
     @Setter
     @ManyToOne(optional = false)
@@ -62,21 +65,23 @@ public class Event {
     @Column(nullable = false)
     private Integer capacity;
 
+    @Setter private String memo;
 
-    @Setter
-    private String memo;
-
-
-    @Column(nullable = false, insertable = false, updatable = false,
+    @Column(
+            nullable = false,
+            insertable = false,
+            updatable = false,
             columnDefinition = "datetime default CURRENT_TIMESTAMP")
     @CreatedDate
     private LocalDateTime createdAt;
 
-    @Column(nullable = false, insertable = false, updatable = false,
+    @Column(
+            nullable = false,
+            insertable = false,
+            updatable = false,
             columnDefinition = "datetime default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP")
     @LastModifiedDate
     private LocalDateTime modifiedAt;
-
 
     protected Event() {}
 
@@ -88,8 +93,7 @@ public class Event {
             LocalDateTime eventEndDatetime,
             Integer currentNumberOfPeople,
             Integer capacity,
-            String memo
-    ) {
+            String memo) {
         this.place = place;
         this.eventName = eventName;
         this.eventStatus = eventStatus;
@@ -108,8 +112,7 @@ public class Event {
             LocalDateTime eventEndDatetime,
             Integer currentNumberOfPeople,
             Integer capacity,
-            String memo
-    ) {
+            String memo) {
         return new Event(
                 place,
                 eventName,
@@ -118,10 +121,8 @@ public class Event {
                 eventEndDatetime,
                 currentNumberOfPeople,
                 capacity,
-                memo
-        );
+                memo);
     }
-
 
     @Override
     public boolean equals(Object obj) {
@@ -134,5 +135,4 @@ public class Event {
     public int hashCode() {
         return Objects.hash(eventName, eventStartDatetime, eventEndDatetime, createdAt, modifiedAt);
     }
-
 }

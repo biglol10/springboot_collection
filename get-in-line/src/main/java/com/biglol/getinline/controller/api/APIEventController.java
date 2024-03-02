@@ -8,7 +8,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -22,17 +21,16 @@ import com.biglol.getinline.service.EventService;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Spring Data REST 로 API 를 만들어서 당장 필요가 없어진 컨트롤러.
- * 우선 deprecated 하고, 향후 사용 방안을 고민해 본다.
- * 필요에 따라서는 다시 살릴 수도 있음
+ * Spring Data REST 로 API 를 만들어서 당장 필요가 없어진 컨트롤러. 우선 deprecated 하고, 향후 사용 방안을 고민해 본다. 필요에 따라서는 다시 살릴
+ * 수도 있음
  *
  * @deprecated 0.1.2
  */
 @Deprecated
 @RequiredArgsConstructor
-//@Validated
-//@RequestMapping("/api")
-//@RestController
+// @Validated
+// @RequestMapping("/api")
+// @RestController
 public class APIEventController {
     private final EventService eventService;
 
@@ -41,7 +39,10 @@ public class APIEventController {
             @Positive Long placeId,
             @Size(min = 2) String eventName,
             EventStatus eventStatus,
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime eventStartDatetime, // String 문자열로 들어간 query parameter을 local datetime으로 변환
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+                    LocalDateTime
+                            eventStartDatetime, // String 문자열로 들어간 query parameter을 local datetime으로
+            // 변환
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime eventEndDatetime) {
         //        throw new GeneralException("테스트 메시지");
         //        throw new HttpRequestMethodNotSupportedException("asdf");
@@ -85,7 +86,8 @@ public class APIEventController {
 
     @GetMapping("/events/{eventId}")
     public APIDataResponse<EventResponse> getEvent(@Positive @PathVariable Long eventId) {
-        EventResponse eventResponse = EventResponse.from(eventService.getEvent(eventId).orElse(null));
+        EventResponse eventResponse =
+                EventResponse.from(eventService.getEvent(eventId).orElse(null));
 
         return APIDataResponse.of(eventResponse);
     }

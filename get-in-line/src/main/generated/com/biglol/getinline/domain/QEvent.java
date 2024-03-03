@@ -2,14 +2,17 @@ package com.biglol.getinline.domain;
 
 import static com.querydsl.core.types.PathMetadataFactory.*;
 
-import javax.annotation.processing.Generated;
-
-import com.querydsl.core.types.Path;
-import com.querydsl.core.types.PathMetadata;
 import com.querydsl.core.types.dsl.*;
+
+import com.querydsl.core.types.PathMetadata;
+import javax.annotation.processing.Generated;
+import com.querydsl.core.types.Path;
 import com.querydsl.core.types.dsl.PathInits;
 
-/** QEvent is a Querydsl query type for Event */
+
+/**
+ * QEvent is a Querydsl query type for Event
+ */
 @Generated("com.querydsl.codegen.DefaultEntitySerializer")
 public class QEvent extends EntityPathBase<Event> {
 
@@ -21,29 +24,23 @@ public class QEvent extends EntityPathBase<Event> {
 
     public final NumberPath<Integer> capacity = createNumber("capacity", Integer.class);
 
-    public final DateTimePath<java.time.LocalDateTime> createdAt =
-            createDateTime("createdAt", java.time.LocalDateTime.class);
+    public final DateTimePath<java.time.LocalDateTime> createdAt = createDateTime("createdAt", java.time.LocalDateTime.class);
 
-    public final NumberPath<Integer> currentNumberOfPeople =
-            createNumber("currentNumberOfPeople", Integer.class);
+    public final NumberPath<Integer> currentNumberOfPeople = createNumber("currentNumberOfPeople", Integer.class);
 
-    public final DateTimePath<java.time.LocalDateTime> eventEndDatetime =
-            createDateTime("eventEndDatetime", java.time.LocalDateTime.class);
+    public final DateTimePath<java.time.LocalDateTime> eventEndDatetime = createDateTime("eventEndDatetime", java.time.LocalDateTime.class);
 
     public final StringPath eventName = createString("eventName");
 
-    public final DateTimePath<java.time.LocalDateTime> eventStartDatetime =
-            createDateTime("eventStartDatetime", java.time.LocalDateTime.class);
+    public final DateTimePath<java.time.LocalDateTime> eventStartDatetime = createDateTime("eventStartDatetime", java.time.LocalDateTime.class);
 
-    public final EnumPath<com.biglol.getinline.constant.EventStatus> eventStatus =
-            createEnum("eventStatus", com.biglol.getinline.constant.EventStatus.class);
+    public final EnumPath<com.biglol.getinline.constant.EventStatus> eventStatus = createEnum("eventStatus", com.biglol.getinline.constant.EventStatus.class);
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
     public final StringPath memo = createString("memo");
 
-    public final DateTimePath<java.time.LocalDateTime> modifiedAt =
-            createDateTime("modifiedAt", java.time.LocalDateTime.class);
+    public final DateTimePath<java.time.LocalDateTime> modifiedAt = createDateTime("modifiedAt", java.time.LocalDateTime.class);
 
     public final QPlace place;
 
@@ -67,4 +64,6 @@ public class QEvent extends EntityPathBase<Event> {
         super(type, metadata, inits);
         this.place = inits.isInitialized("place") ? new QPlace(forProperty("place")) : null;
     }
+
 }
+

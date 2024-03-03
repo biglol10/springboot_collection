@@ -2,14 +2,17 @@ package com.biglol.getinline.domain;
 
 import static com.querydsl.core.types.PathMetadataFactory.*;
 
-import javax.annotation.processing.Generated;
-
-import com.querydsl.core.types.Path;
-import com.querydsl.core.types.PathMetadata;
 import com.querydsl.core.types.dsl.*;
+
+import com.querydsl.core.types.PathMetadata;
+import javax.annotation.processing.Generated;
+import com.querydsl.core.types.Path;
 import com.querydsl.core.types.dsl.PathInits;
 
-/** QAdminPlaceMap is a Querydsl query type for AdminPlaceMap */
+
+/**
+ * QAdminPlaceMap is a Querydsl query type for AdminPlaceMap
+ */
 @Generated("com.querydsl.codegen.DefaultEntitySerializer")
 public class QAdminPlaceMap extends EntityPathBase<AdminPlaceMap> {
 
@@ -21,13 +24,11 @@ public class QAdminPlaceMap extends EntityPathBase<AdminPlaceMap> {
 
     public final QAdmin admin;
 
-    public final DateTimePath<java.time.LocalDateTime> createdAt =
-            createDateTime("createdAt", java.time.LocalDateTime.class);
+    public final DateTimePath<java.time.LocalDateTime> createdAt = createDateTime("createdAt", java.time.LocalDateTime.class);
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
-    public final DateTimePath<java.time.LocalDateTime> modifiedAt =
-            createDateTime("modifiedAt", java.time.LocalDateTime.class);
+    public final DateTimePath<java.time.LocalDateTime> modifiedAt = createDateTime("modifiedAt", java.time.LocalDateTime.class);
 
     public final QPlace place;
 
@@ -47,10 +48,11 @@ public class QAdminPlaceMap extends EntityPathBase<AdminPlaceMap> {
         this(AdminPlaceMap.class, metadata, inits);
     }
 
-    public QAdminPlaceMap(
-            Class<? extends AdminPlaceMap> type, PathMetadata metadata, PathInits inits) {
+    public QAdminPlaceMap(Class<? extends AdminPlaceMap> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
         this.admin = inits.isInitialized("admin") ? new QAdmin(forProperty("admin")) : null;
         this.place = inits.isInitialized("place") ? new QPlace(forProperty("place")) : null;
     }
+
 }
+

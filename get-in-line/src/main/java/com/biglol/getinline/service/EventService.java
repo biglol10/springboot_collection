@@ -15,6 +15,7 @@ import com.biglol.getinline.repository.EventRepository;
 import com.querydsl.core.types.Predicate;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Service
@@ -57,6 +58,7 @@ public class EventService {
     // eventEndDatetime);
     //    }
 
+    @Transactional(readOnly = true)
     public List<EventDto> getEvents(Predicate predicate) {
         try {
             return StreamSupport.stream(eventRepository.findAll(predicate).spliterator(), false)
@@ -67,6 +69,7 @@ public class EventService {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<EventDto> getEvents(
             Long placeId,
             String eventName,
@@ -80,6 +83,7 @@ public class EventService {
         }
     }
 
+    @Transactional(readOnly = true)
     public Optional<EventDto> getEvent(Long eventId) {
         try {
             return eventRepository.findById(eventId).map(EventDto::of);
@@ -88,6 +92,7 @@ public class EventService {
         }
     }
 
+    @Transactional
     public boolean createEvent(EventDto eventDTO) {
         try {
             if (eventDTO == null) {
@@ -103,6 +108,7 @@ public class EventService {
         }
     }
 
+    @Transactional
     public boolean modifyEvent(Long eventId, EventDto dto) {
         try {
             if (eventId == null || dto == null) {
@@ -119,6 +125,7 @@ public class EventService {
         }
     }
 
+    @Transactional
     public boolean removeEvent(Long eventId) {
         try {
             if (eventId == null) {

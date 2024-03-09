@@ -49,7 +49,8 @@ public class Admin {
 
     @Setter private String memo;
 
-    @ToString.Exclude// 양방향 관계 걸어줄 때 중요한 건 순환참조문제를 발생시킬 수 있기에 Lombok의 ToString을 사용할 때 조심해야 함. Admin에서 AdminPlaceMap에 들어가면 또 Admin을 볼 수 있어 순환참조.
+    @ToString.Exclude // 양방향 관계 걸어줄 때 중요한 건 순환참조문제를 발생시킬 수 있기에 Lombok의 ToString을 사용할 때 조심해야 함.
+    // Admin에서 AdminPlaceMap에 들어가면 또 Admin을 볼 수 있어 순환참조.
     // 그래서 한쪽은 ToString에 포함시키지 않도록 해줘야 함 (@ToString.Exclude)
     @OrderBy("id")
     @OneToMany(mappedBy = "admin") // 어느 녀석이 foreign key를 맺고 주인관계가 되느냐를 설정

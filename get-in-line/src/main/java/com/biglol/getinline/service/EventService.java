@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.stream.StreamSupport;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.biglol.getinline.constant.ErrorCode;
 import com.biglol.getinline.constant.EventStatus;
@@ -15,7 +16,6 @@ import com.biglol.getinline.repository.EventRepository;
 import com.querydsl.core.types.Predicate;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Service

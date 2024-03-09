@@ -2,7 +2,6 @@ package com.biglol.getinline.controller.error;
 
 import java.util.Map;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.ModelAndView;
@@ -23,10 +22,8 @@ public class BaseExceptionHandler {
                 Map.of(
                         "statusCode", errorCode.getHttpStatus().value(),
                         "errorCode", errorCode,
-                        "message", errorCode.getMessage()
-                ),
-                errorCode.getHttpStatus()
-        );
+                        "message", errorCode.getMessage()),
+                errorCode.getHttpStatus());
     }
 
     @ExceptionHandler
@@ -38,9 +35,7 @@ public class BaseExceptionHandler {
                 Map.of(
                         "statusCode", errorCode.getHttpStatus().value(),
                         "errorCode", errorCode,
-                        "message", errorCode.getMessage(e)
-                ),
-                errorCode.getHttpStatus()
-        );
+                        "message", errorCode.getMessage(e)),
+                errorCode.getHttpStatus());
     }
 }

@@ -2,7 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.2.2'
 	id 'io.spring.dependency-management' version '1.1.4'
-	id 'com.diffplug.spotless' version '6.23.3' // Spotless 플러그인
+	id 'com.diffplug.spotless' version '6.23.3' // Spotless 플러그인, ./gradlew spotlessApply
 }
 
 //id 'org.springframework.boot' version '3.2.2'
@@ -67,8 +67,10 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
 	//Querydsl 추가
-	implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
-	annotationProcessor "com.querydsl:querydsl-apt:${dependencyManagement.importedProperties['querydsl.version']}:jakarta"
+	// ⭐ Spring boot 3.x이상에서 QueryDsl 패키지를 정의하는 방법, https://velog.io/@juhyeon1114/Spring-QueryDsl-gradle-%EC%84%A4%EC%A0%95-Spring-boot-3.0-%EC%9D%B4%EC%83%81
+	implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta' // com.querydsl:querydsl-jpa만 적어도 dependency-management에 의해 가장 최신의 버전이 붙음.
+//	annotationProcessor "com.querydsl:querydsl-apt:${dependencyManagement.importedProperties['querydsl.version']}:jakarta" // 얘의 경우 어절 수 없이 수동 설정해야 되는 부분. 다만 정말로 수동으로 하지는 않고 변수로 씀. 그루비 문법 중 하나임
+	annotationProcessor "com.querydsl:querydsl-apt:5.0.0:jakarta"
 	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
 	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 }
@@ -77,20 +79,21 @@ tasks.named('test') {
 	useJUnitPlatform()
 }
 
-// querydsl 적용
+// querydsl 적용. 안해도 되지만 하는 이유 설명: fastcampus.co.kr/courses/209686/clips (14분전)
+// Q 클래스가 만들엉진 위치를 수동으로 잡음. 수동으로 잡은 위치를 IDE가 모르니 아래 코드 작성
 def generated='src/main/generated'
 
-// java source set 에 querydsl QClass 위치 추가
+// java source set 에 querydsl QClass 위치 추가.
 sourceSets {
 	main.java.srcDirs += [ generated ]
 }
 
-// querydsl QClass 파일 위치를 잡아주는 설정
+// querydsl QClass 파일 위치를 잡아주는 설정. 파일 위치 직접 설정. 그럼 자바 코드가 src/main/generated에 생김
 tasks.withType(JavaCompile) {
 	options.getGeneratedSourceOutputDirectory().set(file(generated))
 }
 
-// gradle clean 시에 QClass 디렉토리 삭제
+// gradle clean 시에 QClass 디렉토리 삭제. 원래 build에 있어야 하는데 src안의 generated안에 넣었기에 clean할 때 자동으로 지워지지 않음. 그래서 아래 코드 추가
 clean {
 	delete file(generated)
 }

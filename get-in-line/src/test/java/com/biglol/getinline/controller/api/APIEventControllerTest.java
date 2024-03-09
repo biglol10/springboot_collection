@@ -13,8 +13,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
-import com.biglol.getinline.constant.PlaceType;
-import com.biglol.getinline.dto.PlaceDto;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,8 +24,10 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.biglol.getinline.constant.ErrorCode;
 import com.biglol.getinline.constant.EventStatus;
+import com.biglol.getinline.constant.PlaceType;
 import com.biglol.getinline.dto.EventDto;
 import com.biglol.getinline.dto.EventResponse;
+import com.biglol.getinline.dto.PlaceDto;
 import com.biglol.getinline.service.EventService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -54,9 +54,11 @@ class APIEventControllerTest {
 
     @DisplayName("[API][GET] 이벤트 리스트 조회 + 검색 파라미터")
     @Test
-    void givenParameters_whenRequestingEvents_thenReturnsListOfEventsInStandardResponse() throws Exception {
+    void givenParameters_whenRequestingEvents_thenReturnsListOfEventsInStandardResponse()
+            throws Exception {
         // Given
-        given(eventService.getEvents(any(), any(), any(), any(), any())).willReturn(List.of(createEventDTO()));
+        given(eventService.getEvents(any(), any(), any(), any(), any()))
+                .willReturn(List.of(createEventDTO()));
 
         // When & Then
         mvc.perform(
@@ -65,20 +67,23 @@ class APIEventControllerTest {
                                 .queryParam("eventName", "운동")
                                 .queryParam("eventStatus", EventStatus.OPENED.name())
                                 .queryParam("eventStartDatetime", "2021-01-01T00:00:00")
-                                .queryParam("eventEndDatetime", "2021-01-02T00:00:00")
-                )
+                                .queryParam("eventEndDatetime", "2021-01-02T00:00:00"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.data").isArray())
                 .andExpect(jsonPath("$.data[0].placeId").value(1L))
                 .andExpect(jsonPath("$.data[0].eventName").value("오후 운동"))
                 .andExpect(jsonPath("$.data[0].eventStatus").value(EventStatus.OPENED.name()))
-                .andExpect(jsonPath("$.data[0].eventStartDatetime").value(LocalDateTime
-                        .of(2021, 1, 1, 13, 0, 0)
-                        .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
-                .andExpect(jsonPath("$.data[0].eventEndDatetime").value(LocalDateTime
-                        .of(2021, 1, 1, 16, 0, 0)
-                        .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
+                .andExpect(
+                        jsonPath("$.data[0].eventStartDatetime")
+                                .value(
+                                        LocalDateTime.of(2021, 1, 1, 13, 0, 0)
+                                                .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
+                .andExpect(
+                        jsonPath("$.data[0].eventEndDatetime")
+                                .value(
+                                        LocalDateTime.of(2021, 1, 1, 16, 0, 0)
+                                                .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
                 .andExpect(jsonPath("$.data[0].currentNumberOfPeople").value(0))
                 .andExpect(jsonPath("$.data[0].capacity").value(24))
                 .andExpect(jsonPath("$.data[0].memo").value("마스크 꼭 착용하세요"))
@@ -90,20 +95,19 @@ class APIEventControllerTest {
 
     @DisplayName("[API][GET] 이벤트 리스트 조회 - 잘못된 검색 파라미터")
     @Test
-    void givenWrongParameters_whenRequestingEvents_thenReturnsFailedStandardResponse() throws Exception {
+    void givenWrongParameters_whenRequestingEvents_thenReturnsFailedStandardResponse()
+            throws Exception {
         // Given
 
         // When & Then
-        mvc.perform(
-                        get("/api/events")
-                                .queryParam("placeId", "0")
-                                .queryParam("eventName", "오")
-                )
+        mvc.perform(get("/api/events").queryParam("placeId", "0").queryParam("eventName", "오"))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.errorCode").value(ErrorCode.VALIDATION_ERROR.getCode()))
-                .andExpect(jsonPath("$.message").value(containsString(ErrorCode.VALIDATION_ERROR.getMessage())));
+                .andExpect(
+                        jsonPath("$.message")
+                                .value(containsString(ErrorCode.VALIDATION_ERROR.getMessage())));
         then(eventService).shouldHaveNoInteractions();
     }
 
@@ -111,25 +115,24 @@ class APIEventControllerTest {
     @Test
     void givenEvent_whenCreatingAnEvent_thenReturnsSuccessfulStandardResponse() throws Exception {
         // Given
-        EventResponse eventResponse = EventResponse.of(
-                1L,
-                createPlaceDto(1L),
-                "오후 운동",
-                EventStatus.OPENED,
-                LocalDateTime.of(2021, 1, 1, 13, 0, 0),
-                LocalDateTime.of(2021, 1, 1, 16, 0, 0),
-                0,
-                24,
-                "마스크 꼭 착용하세요"
-        );
+        EventResponse eventResponse =
+                EventResponse.of(
+                        1L,
+                        createPlaceDto(1L),
+                        "오후 운동",
+                        EventStatus.OPENED,
+                        LocalDateTime.of(2021, 1, 1, 13, 0, 0),
+                        LocalDateTime.of(2021, 1, 1, 16, 0, 0),
+                        0,
+                        24,
+                        "마스크 꼭 착용하세요");
         given(eventService.createEvent(any())).willReturn(true);
 
         // When & Then
         mvc.perform(
                         post("/api/events")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(mapper.writeValueAsString(eventResponse))
-                )
+                                .content(mapper.writeValueAsString(eventResponse)))
                 .andExpect(status().isCreated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.data").value(Boolean.TRUE.toString()))
@@ -143,35 +146,29 @@ class APIEventControllerTest {
     @Test
     void givenWrongEvent_whenCreatingAnEvent_thenReturnsFailedStandardResponse() throws Exception {
         // Given
-        EventResponse eventResponse = EventResponse.of(
-                1L,
-                createPlaceDto(0L),
-                "  ",
-                null,
-                null,
-                null,
-                -1,
-                0,
-                "마스크 꼭 착용하세요"
-        );
+        EventResponse eventResponse =
+                EventResponse.of(
+                        1L, createPlaceDto(0L), "  ", null, null, null, -1, 0, "마스크 꼭 착용하세요");
 
         // When & Then
         mvc.perform(
                         post("/api/events")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(mapper.writeValueAsString(eventResponse))
-                )
+                                .content(mapper.writeValueAsString(eventResponse)))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.errorCode").value(ErrorCode.SPRING_BAD_REQUEST.getCode()))
-                .andExpect(jsonPath("$.message").value(containsString(ErrorCode.SPRING_BAD_REQUEST.getMessage())));
+                .andExpect(
+                        jsonPath("$.message")
+                                .value(containsString(ErrorCode.SPRING_BAD_REQUEST.getMessage())));
         then(eventService).shouldHaveNoInteractions();
     }
 
     @DisplayName("[API][GET] 단일 이벤트 조회 - 이벤트 있는 경우, 이벤트 데이터를 담은 표준 API 출력")
     @Test
-    void givenEventId_whenRequestingExistentEvent_thenReturnsEventInStandardResponse() throws Exception {
+    void givenEventId_whenRequestingExistentEvent_thenReturnsEventInStandardResponse()
+            throws Exception {
         // Given
         long eventId = 1L;
         given(eventService.getEvent(eventId)).willReturn(Optional.of(createEventDTO()));
@@ -184,12 +181,16 @@ class APIEventControllerTest {
                 .andExpect(jsonPath("$.data.placeId").value(1L))
                 .andExpect(jsonPath("$.data.eventName").value("오후 운동"))
                 .andExpect(jsonPath("$.data.eventStatus").value(EventStatus.OPENED.name()))
-                .andExpect(jsonPath("$.data.eventStartDatetime").value(LocalDateTime
-                        .of(2021, 1, 1, 13, 0, 0)
-                        .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
-                .andExpect(jsonPath("$.data.eventEndDatetime").value(LocalDateTime
-                        .of(2021, 1, 1, 16, 0, 0)
-                        .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
+                .andExpect(
+                        jsonPath("$.data.eventStartDatetime")
+                                .value(
+                                        LocalDateTime.of(2021, 1, 1, 13, 0, 0)
+                                                .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
+                .andExpect(
+                        jsonPath("$.data.eventEndDatetime")
+                                .value(
+                                        LocalDateTime.of(2021, 1, 1, 16, 0, 0)
+                                                .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
                 .andExpect(jsonPath("$.data.currentNumberOfPeople").value(0))
                 .andExpect(jsonPath("$.data.capacity").value(24))
                 .andExpect(jsonPath("$.data.memo").value("마스크 꼭 착용하세요"))
@@ -201,7 +202,8 @@ class APIEventControllerTest {
 
     @DisplayName("[API][GET] 단일 이벤트 조회 - 이벤트 없는 경우, 빈 표준 API 출력")
     @Test
-    void givenEventId_whenRequestingNonexistentEvent_thenReturnsEmptyStandardResponse() throws Exception {
+    void givenEventId_whenRequestingNonexistentEvent_thenReturnsEmptyStandardResponse()
+            throws Exception {
         // Givenzz
         long eventId = 2L;
         given(eventService.getEvent(eventId)).willReturn(Optional.empty());
@@ -219,7 +221,8 @@ class APIEventControllerTest {
 
     @DisplayName("[API][GET] 단일 이벤트 조회 - 파라미터 잘못된 경우, 빈 표준 API 출력")
     @Test
-    void givenWrongEventId_whenRequestingNonexistentEvent_thenReturnsFailedStandardResponse() throws Exception {
+    void givenWrongEventId_whenRequestingNonexistentEvent_thenReturnsFailedStandardResponse()
+            throws Exception {
         // Givenzz
         long eventId = 0L;
 
@@ -229,34 +232,36 @@ class APIEventControllerTest {
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.errorCode").value(ErrorCode.VALIDATION_ERROR.getCode()))
-                .andExpect(jsonPath("$.message").value(containsString(ErrorCode.VALIDATION_ERROR.getMessage())));
+                .andExpect(
+                        jsonPath("$.message")
+                                .value(containsString(ErrorCode.VALIDATION_ERROR.getMessage())));
         then(eventService).shouldHaveNoInteractions();
     }
 
     @DisplayName("[API][PUT] 이벤트 변경")
     @Test
-    void givenEventIdAndInfo_whenModifyingAnEvent_thenReturnsSuccessfulStandardResponse() throws Exception {
+    void givenEventIdAndInfo_whenModifyingAnEvent_thenReturnsSuccessfulStandardResponse()
+            throws Exception {
         // Given
         long eventId = 1L;
-        EventResponse eventResponse = EventResponse.of(
-                eventId,
-                createPlaceDto(1L),
-                "오후 운동",
-                EventStatus.OPENED,
-                LocalDateTime.of(2021, 1, 1, 13, 0, 0),
-                LocalDateTime.of(2021, 1, 1, 16, 0, 0),
-                0,
-                24,
-                "마스크 꼭 착용하세요"
-        );
+        EventResponse eventResponse =
+                EventResponse.of(
+                        eventId,
+                        createPlaceDto(1L),
+                        "오후 운동",
+                        EventStatus.OPENED,
+                        LocalDateTime.of(2021, 1, 1, 13, 0, 0),
+                        LocalDateTime.of(2021, 1, 1, 16, 0, 0),
+                        0,
+                        24,
+                        "마스크 꼭 착용하세요");
         given(eventService.modifyEvent(eq(eventId), any())).willReturn(true);
 
         // When & Then
         mvc.perform(
                         put("/api/events/" + eventId)
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(mapper.writeValueAsString(eventResponse))
-                )
+                                .content(mapper.writeValueAsString(eventResponse)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.data").value(Boolean.TRUE.toString()))
@@ -268,32 +273,26 @@ class APIEventControllerTest {
 
     @DisplayName("[API][PUT] 이벤트 변경 - 잘못된 입력")
     @Test
-    void givenWrongEventIdAndInfo_whenModifyingAnEvent_thenReturnsSuccessfulStandardResponse() throws Exception {
+    void givenWrongEventIdAndInfo_whenModifyingAnEvent_thenReturnsSuccessfulStandardResponse()
+            throws Exception {
         // Given
         long eventId = 0L;
-        EventResponse eventResponse = EventResponse.of(
-                eventId,
-                createPlaceDto(0L),
-                "  ",
-                null,
-                null,
-                null,
-                -1,
-                0,
-                "마스크 꼭 착용하세요"
-        );
+        EventResponse eventResponse =
+                EventResponse.of(
+                        eventId, createPlaceDto(0L), "  ", null, null, null, -1, 0, "마스크 꼭 착용하세요");
 
         // When & Then
         mvc.perform(
                         put("/api/events/" + eventId)
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(mapper.writeValueAsString(eventResponse))
-                )
+                                .content(mapper.writeValueAsString(eventResponse)))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.errorCode").value(ErrorCode.SPRING_BAD_REQUEST.getCode()))
-                .andExpect(jsonPath("$.message").value(containsString(ErrorCode.SPRING_BAD_REQUEST.getMessage())));
+                .andExpect(
+                        jsonPath("$.message")
+                                .value(containsString(ErrorCode.SPRING_BAD_REQUEST.getMessage())));
         then(eventService).shouldHaveNoInteractions();
     }
 
@@ -317,7 +316,8 @@ class APIEventControllerTest {
 
     @DisplayName("[API][DELETE] 이벤트 삭제 - 잘못된 입력")
     @Test
-    void givenWrongEventId_whenDeletingAnEvent_thenReturnsFailedStandardResponse() throws Exception {
+    void givenWrongEventId_whenDeletingAnEvent_thenReturnsFailedStandardResponse()
+            throws Exception {
         // Given
         long eventId = 0L;
 
@@ -327,10 +327,11 @@ class APIEventControllerTest {
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.errorCode").value(ErrorCode.VALIDATION_ERROR.getCode()))
-                .andExpect(jsonPath("$.message").value(containsString(ErrorCode.VALIDATION_ERROR.getMessage())));
+                .andExpect(
+                        jsonPath("$.message")
+                                .value(containsString(ErrorCode.VALIDATION_ERROR.getMessage())));
         then(eventService).shouldHaveNoInteractions();
     }
-
 
     private EventDto createEventDTO() {
         return EventDto.of(
@@ -344,8 +345,7 @@ class APIEventControllerTest {
                 24,
                 "마스크 꼭 착용하세요",
                 LocalDateTime.now(),
-                LocalDateTime.now()
-        );
+                LocalDateTime.now());
     }
 
     private PlaceDto createPlaceDto(Long placeId) {
@@ -358,7 +358,6 @@ class APIEventControllerTest {
                 10,
                 null,
                 LocalDateTime.now(),
-                LocalDateTime.now()
-        );
+                LocalDateTime.now());
     }
 }

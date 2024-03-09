@@ -3,7 +3,7 @@ package com.biglol.getinline.controller.api;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import com.biglol.getinline.dto.APIDataResponse;
+import com.biglol.getinline.dto.ApiDataResponse;
 import com.biglol.getinline.dto.PlaceRequest;
 
 /**
@@ -31,8 +31,8 @@ public class APIPlaceController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/places")
-    public APIDataResponse<Void> createPlace(@RequestBody PlaceRequest placeRequest) {
-        return APIDataResponse.empty();
+    public ApiDataResponse<Void> createPlace(@RequestBody PlaceRequest placeRequest) {
+        return ApiDataResponse.empty();
     }
 
     //    @GetMapping("/places/{placeId}")
@@ -52,13 +52,13 @@ public class APIPlaceController {
     //    }
 
     @PutMapping("/places/{placeId}")
-    public APIDataResponse<Void> modifyPlace(
+    public ApiDataResponse<Void> modifyPlace(
             @PathVariable Long placeId, @RequestBody PlaceRequest placeRequest) {
-        return APIDataResponse.empty();
+        return ApiDataResponse.empty();
     }
 
     @DeleteMapping("/places/{placeId}")
-    public APIDataResponse<Void> removePlace(@PathVariable Long placeId) {
-        return APIDataResponse.empty();
+    public ApiDataResponse<Void> removePlace(@PathVariable Long placeId) {
+        return ApiDataResponse.empty();
     }
 }

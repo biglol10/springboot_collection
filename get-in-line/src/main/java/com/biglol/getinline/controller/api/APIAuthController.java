@@ -2,7 +2,7 @@ package com.biglol.getinline.controller.api;
 
 import org.springframework.web.bind.annotation.*;
 
-import com.biglol.getinline.dto.APIDataResponse;
+import com.biglol.getinline.dto.ApiDataResponse;
 import com.biglol.getinline.dto.AdminRequest;
 import com.biglol.getinline.dto.LoginRequest;
 
@@ -19,12 +19,12 @@ import com.biglol.getinline.dto.LoginRequest;
 // @RestController
 public class APIAuthController {
     @PostMapping("/sign-up")
-    public APIDataResponse<String> signUp(@RequestBody AdminRequest adminRequest) {
-        return APIDataResponse.empty();
+    public ApiDataResponse<String> signUp(@RequestBody AdminRequest adminRequest) {
+        return ApiDataResponse.empty();
     }
 
     @PostMapping("/login")
-    public APIDataResponse<String> login(@RequestBody LoginRequest loginRequest) {
-        return APIDataResponse.empty();
+    public ApiDataResponse<String> login(@RequestBody LoginRequest loginRequest) {
+        return ApiDataResponse.empty();
     }
 }

@@ -31,6 +31,8 @@ public interface EventRepository
     // 안 넣으면 is null로 됨. join도 안됨. 이건 순서 기반으로 되는데 그게 싫으면 @Param("eventName") String eventName하면 됨
     Optional<Event> findFirstByEventEndDatetimeBetween(LocalDateTime from, LocalDateTime to);
 
+    // 이벤트에서 api호출해서 이벤트 조회할 때 검색어들을 이 안에 넣으려고 했음
+    // 연관관계를 맺으면서 place name으로 조회하는게 가능해짐. 그래서 place.placeName으로 넣음
     @Override
     default void customize(QuerydslBindings bindings, QEvent root) {
         bindings.excludeUnlistedProperties(true);

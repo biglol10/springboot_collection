@@ -7,6 +7,7 @@ import java.util.Set;
 
 import jakarta.persistence.*;
 
+import lombok.EqualsAndHashCode;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -16,6 +17,7 @@ import com.biglol.getinline.constant.PlaceType;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+
 
 @Getter
 @ToString
@@ -31,6 +33,7 @@ import lombok.ToString;
 @Entity
 public class Place {
 
+//    @EqualsAndHashCode.Include
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -77,7 +80,7 @@ public class Place {
     @ToString.Exclude
     @OrderBy("id")
     @OneToMany(mappedBy = "place")
-    private final Set<Event> events = new LinkedHashSet<>();
+    private final Set<Event> events = new LinkedHashSet<>(); // List를 만들 때 중복을 피하기 위해 Set을 추천. 순서 유지하고 싶다면 LinkedHashSet
 
     //    @ToString.Exclude
     //    @OrderBy("id")

@@ -1,36 +1,23 @@
 package com.biglol.getinline.dto;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
-
-import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.biglol.getinline.constant.ErrorCode;
-import com.biglol.getinline.constant.EventStatus;
 
 // Spring의 무언가를 사용하는 것이 아니기에 @WebMvcTest안 써도 됨
-class APIDataResponseTest {
+class ApiDataResponseTest {
     @DisplayName("표준 성공 응답 테스트")
     @Test
     void test() {
         String data = "test data";
 
-        EventResponse eventResponse =
-                EventResponse.of(
-                        1L,
-                        "오후 운동",
-                        EventStatus.OPENED,
-                        LocalDateTime.of(2021, 1, 1, 13, 0, 0),
-                        LocalDateTime.of(2021, 1, 1, 16, 0, 0),
-                        0,
-                        24,
-                        "마스크 꼭 착용하세요");
+        // When
+        ApiDataResponse<String> response = ApiDataResponse.of(data);
 
-        APIDataResponse<String> response = APIDataResponse.of(data);
-
+        // Then
         assertThat(response)
                 .hasFieldOrPropertyWithValue("success", true)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.OK.getCode())
@@ -55,7 +42,7 @@ class APIDataResponseTest {
         // Given
 
         // When
-        APIDataResponse<String> response = APIDataResponse.empty();
+        ApiDataResponse<String> response = ApiDataResponse.empty();
 
         // Then
         assertThat(response)

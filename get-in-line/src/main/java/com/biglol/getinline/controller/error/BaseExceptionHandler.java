@@ -17,36 +17,30 @@ public class BaseExceptionHandler {
     @ExceptionHandler
     public ModelAndView general(GeneralException e) {
         ErrorCode errorCode = e.getErrorCode();
-        HttpStatus status =
-                errorCode.isClientSideError()
-                        ? HttpStatus.BAD_REQUEST
-                        : HttpStatus.INTERNAL_SERVER_ERROR;
 
         return new ModelAndView(
                 "error",
                 Map.of(
-                        "statusCode",
-                        status.value(),
-                        "errorCode",
-                        errorCode,
-                        "message",
-                        errorCode.getMessage(e)), // 이 내용이 먼저 우선 하고 이 내용이 없으면 기본 error을 출력
-                status);
+                        "statusCode", errorCode.getHttpStatus().value(),
+                        "errorCode", errorCode,
+                        "message", errorCode.getMessage()
+                ),
+                errorCode.getHttpStatus()
+        );
     }
 
-    // 전체적으로 에러 터졌을 때의 케이스
     @ExceptionHandler
     public ModelAndView exception(Exception e) {
         ErrorCode errorCode = ErrorCode.INTERNAL_ERROR;
-        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
 
         return new ModelAndView(
                 "error",
                 Map.of(
-                        "statusCode", status.value(),
+                        "statusCode", errorCode.getHttpStatus().value(),
                         "errorCode", errorCode,
-                        "message", errorCode.getMessage(e) // 이 내용이 먼저 우선 하고 이 내용이 없으면 기본 error을 출력
-                        ),
-                status);
+                        "message", errorCode.getMessage(e)
+                ),
+                errorCode.getHttpStatus()
+        );
     }
 }

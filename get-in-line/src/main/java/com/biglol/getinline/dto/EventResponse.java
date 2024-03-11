@@ -52,4 +52,9 @@ public record EventResponse(
                 eventDTO.capacity(),
                 eventDTO.memo());
     }
+
+    // event/index.th.xml 의 event.placeName 때문에 추가
+    public String getPlaceName() {
+        return this.place.placeName();
+    }
 }

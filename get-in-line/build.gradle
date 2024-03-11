@@ -5,6 +5,8 @@ plugins {
 	id 'com.diffplug.spotless' version '6.23.3' // Spotless 플러그인, ./gradlew spotlessApply
 }
 
+// querydsl을 plugin으로 세팅하는 경우가 있는데 스프링부트 2 초반대 버전까지만 쓰이고 gradle이랑 충돌나서 제거
+
 //id 'org.springframework.boot' version '3.2.2'
 //id 'io.spring.dependency-management' version '1.1.4'
 

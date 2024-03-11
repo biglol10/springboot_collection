@@ -5,6 +5,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.StreamSupport;
 
+import com.biglol.getinline.domain.Place;
+import com.biglol.getinline.dto.EventViewResponse;
+import com.biglol.getinline.repository.PlaceRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,43 +27,8 @@ import lombok.RequiredArgsConstructor;
 public class EventService {
 
     private final EventRepository eventRepository;
+    private final PlaceRepository placeRepository;
 
-    //
-    //    public List<EventDto> getEvents(
-    //            Long placeId,
-    //            String eventName,
-    //            EventStatus eventStatus,
-    //            LocalDateTime eventStartDatetime,
-    //            LocalDateTime eventEndDatetime) {
-    ////        return List.of(
-    ////                EventDTO.of(
-    ////                        1L,
-    ////                        "오후 운동",
-    ////                        EventStatus.OPENED,
-    ////                        LocalDateTime.parse("2021-01-01T00:00:00"),
-    ////                        LocalDateTime.parse("2021-02-01T00:00:00"),
-    ////                        0,
-    ////                        24,
-    ////                        "마스크 꼭 착용하세요",
-    ////                        LocalDateTime.now(),
-    ////                        LocalDateTime.now()),
-    ////                EventDTO.of(
-    ////                        1L,
-    ////                        "오후 운동2",
-    ////                        EventStatus.OPENED,
-    ////                        LocalDateTime.parse("2021-03-01T00:00:00"),
-    ////                        LocalDateTime.parse("2021-04-01T00:00:00"),
-    ////                        0,
-    ////                        24,
-    ////                        "마스크 꼭 착용하세요",
-    ////                        LocalDateTime.now(),
-    ////                        LocalDateTime.now()));
-    //
-    //        return eventRepository.findEvents(placeId, eventName, eventStatus, eventStartDatetime,
-    // eventEndDatetime);
-    //    }
-
-    @Transactional(readOnly = true)
     public List<EventDto> getEvents(Predicate predicate) {
         try {
             return StreamSupport.stream(eventRepository.findAll(predicate).spliterator(), false)
@@ -69,21 +39,28 @@ public class EventService {
         }
     }
 
-    @Transactional(readOnly = true)
-    public List<EventDto> getEvents(
-            Long placeId,
+    public Page<EventViewResponse> getEventViewResponse(
+            String placeName,
             String eventName,
             EventStatus eventStatus,
             LocalDateTime eventStartDatetime,
-            LocalDateTime eventEndDatetime) {
+            LocalDateTime eventEndDatetime,
+            Pageable pageable
+    ) {
         try {
-            return null;
+            return eventRepository.findEventViewPageBySearchParams(
+                    placeName,
+                    eventName,
+                    eventStatus,
+                    eventStartDatetime,
+                    eventEndDatetime,
+                    pageable
+            );
         } catch (Exception e) {
             throw new GeneralException(ErrorCode.DATA_ACCESS_ERROR, e);
         }
     }
 
-    @Transactional(readOnly = true)
     public Optional<EventDto> getEvent(Long eventId) {
         try {
             return eventRepository.findById(eventId).map(EventDto::of);
@@ -92,31 +69,28 @@ public class EventService {
         }
     }
 
-    @Transactional
     public boolean createEvent(EventDto eventDTO) {
         try {
             if (eventDTO == null) {
                 return false;
             }
-            //
-            //            Place place = placeRepository.findById(eventDTO.placeDto().id())
-            //                    .orElseThrow(() -> new GeneralException(ErrorCode.NOT_FOUND));
-            //            eventRepository.save(eventDTO.toEntity(place));
+
+            Place place = placeRepository.findById(eventDTO.placeDto().id())
+                    .orElseThrow(() -> new GeneralException(ErrorCode.NOT_FOUND));
+            eventRepository.save(eventDTO.toEntity(place));
             return true;
         } catch (Exception e) {
             throw new GeneralException(ErrorCode.DATA_ACCESS_ERROR, e);
         }
     }
 
-    @Transactional
     public boolean modifyEvent(Long eventId, EventDto dto) {
         try {
             if (eventId == null || dto == null) {
                 return false;
             }
 
-            eventRepository
-                    .findById(eventId)
+            eventRepository.findById(eventId)
                     .ifPresent(event -> eventRepository.save(dto.updateEntity(event)));
 
             return true;
@@ -125,7 +99,6 @@ public class EventService {
         }
     }
 
-    @Transactional
     public boolean removeEvent(Long eventId) {
         try {
             if (eventId == null) {
@@ -138,20 +111,4 @@ public class EventService {
             throw new GeneralException(ErrorCode.DATA_ACCESS_ERROR, e);
         }
     }
-
-    //    public Optional<EventDto> getEvent(Long eventId) {
-    //        return eventRepository.findEvent(eventId);
-    //    }
-    //
-    //    public boolean createEvent(EventDto eventDTO) {
-    //        return eventRepository.insertEvent(eventDTO);
-    //    }
-    //
-    //    public boolean modifyEvent(Long eventIㄱd, EventDto eventDTO) {
-    //        return eventRepository.updateEvent(eventId, eventDTO);
-    //    }
-    //
-    //    public boolean removeEvent(Long eventId) {
-    //        return eventRepository.deleteEvent(eventId);
-    //    }
 }

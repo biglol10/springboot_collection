@@ -10,12 +10,16 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import com.biglol.getinline.dto.EventViewResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.biglol.getinline.constant.ErrorCode;
@@ -47,7 +51,10 @@ class EventServiceTest {
     void givenNothing_whenSearchingEvents_thenReturnsEntireEventList() {
         // Given
         given(eventRepository.findAll(any(Predicate.class)))
-                .willReturn(List.of(createEvent("오전 운동", true), createEvent("오후 운동", false)));
+                .willReturn(List.of(
+                        createEvent("오전 운동", true),
+                        createEvent("오후 운동", false)
+                ));
 
         // When
         List<EventDto> list = sut.getEvents(new BooleanBuilder());
@@ -72,6 +79,24 @@ class EventServiceTest {
                 .isInstanceOf(GeneralException.class)
                 .hasMessageContaining(ErrorCode.DATA_ACCESS_ERROR.getMessage());
         then(eventRepository).should().findAll(any(Predicate.class));
+    }
+
+    @DisplayName("이벤트 뷰 데이터를 검색하면, 페이징된 결과를 출력하여 보여준다.")
+    @Test
+    void givenNothing_whenSearchingEventViewResponse_thenReturnsEventViewResponsePage() {
+        // Given
+        given(eventRepository.findEventViewPageBySearchParams(null, null, null, null, null, PageRequest.ofSize(10)))
+                .willReturn(new PageImpl<>(List.of(
+                        EventViewResponse.from(EventDto.of(createEvent("오전 운동", true))),
+                        EventViewResponse.from(EventDto.of(createEvent("오후 운동", false)))
+                )));
+
+        // When
+        Page<EventViewResponse> list = sut.getEventViewResponse(null, null, null, null, null, PageRequest.ofSize(10));
+
+        // Then
+        assertThat(list).hasSize(2);
+        then(eventRepository).should().findEventViewPageBySearchParams(null, null, null, null, null, PageRequest.ofSize(10));
     }
 
     @DisplayName("이벤트 ID로 존재하는 이벤트를 조회하면, 해당 이벤트 정보를 출력하여 보여준다.")
@@ -127,8 +152,7 @@ class EventServiceTest {
     void givenEvent_whenCreating_thenCreatesEventAndReturnsTrue() {
         // Given
         EventDto eventDto = EventDto.of(createEvent("오후 운동", false));
-        given(placeRepository.findById(eventDto.placeDto().id()))
-                .willReturn(Optional.of(createPlace()));
+        given(placeRepository.findById(eventDto.placeDto().id())).willReturn(Optional.of(createPlace()));
         given(eventRepository.save(any(Event.class))).willReturn(any());
 
         // When
@@ -178,8 +202,7 @@ class EventServiceTest {
         // Given
         Event event = createEvent(null, false);
         RuntimeException e = new RuntimeException("This is test.");
-        given(placeRepository.findById(event.getPlace().getId()))
-                .willReturn(Optional.of(createPlace()));
+        given(placeRepository.findById(event.getPlace().getId())).willReturn(Optional.of(createPlace()));
         given(eventRepository.save(any())).willThrow(e);
 
         // When
@@ -209,10 +232,8 @@ class EventServiceTest {
         // Then
         assertThat(result).isTrue();
         assertThat(originalEvent.getEventName()).isEqualTo(changedEvent.getEventName());
-        assertThat(originalEvent.getEventStartDatetime())
-                .isEqualTo(changedEvent.getEventStartDatetime());
-        assertThat(originalEvent.getEventEndDatetime())
-                .isEqualTo(changedEvent.getEventEndDatetime());
+        assertThat(originalEvent.getEventStartDatetime()).isEqualTo(changedEvent.getEventStartDatetime());
+        assertThat(originalEvent.getEventEndDatetime()).isEqualTo(changedEvent.getEventEndDatetime());
         assertThat(originalEvent.getEventStatus()).isEqualTo(changedEvent.getEventStatus());
         then(eventRepository).should().findById(eventId);
         then(eventRepository).should().save(changedEvent);
@@ -314,6 +335,7 @@ class EventServiceTest {
         then(eventRepository).should().deleteById(eventId);
     }
 
+
     private Event createEvent(String eventName, boolean isMorning) {
         String hourStart = isMorning ? "09" : "13";
         String hourEnd = isMorning ? "12" : "16";
@@ -324,7 +346,8 @@ class EventServiceTest {
                 eventName,
                 EventStatus.OPENED,
                 LocalDateTime.parse("2021-01-01T%s:00:00".formatted(hourStart)),
-                LocalDateTime.parse("2021-01-01T%s:00:00".formatted(hourEnd)));
+                LocalDateTime.parse("2021-01-01T%s:00:00".formatted(hourEnd))
+        );
     }
 
     private Event createEvent(
@@ -333,17 +356,18 @@ class EventServiceTest {
             String eventName,
             EventStatus eventStatus,
             LocalDateTime eventStartDateTime,
-            LocalDateTime eventEndDateTime) {
-        Event event =
-                Event.of(
-                        createPlace(placeId),
-                        eventName,
-                        eventStatus,
-                        eventStartDateTime,
-                        eventEndDateTime,
-                        0,
-                        24,
-                        "마스크 꼭 착용하세요");
+            LocalDateTime eventEndDateTime
+    ) {
+        Event event = Event.of(
+                createPlace(placeId),
+                eventName,
+                eventStatus,
+                eventStartDateTime,
+                eventEndDateTime,
+                0,
+                24,
+                "마스크 꼭 착용하세요"
+        );
         ReflectionTestUtils.setField(event, "id", id);
 
         return event;
@@ -354,8 +378,7 @@ class EventServiceTest {
     }
 
     private Place createPlace(long id) {
-        Place place =
-                Place.of(PlaceType.COMMON, "test place", "test address", "010-1234-1234", 10, null);
+        Place place = Place.of(PlaceType.COMMON, "test place", "test address", "010-1234-1234", 10, null);
         ReflectionTestUtils.setField(place, "id", id);
 
         return place;

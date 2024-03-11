@@ -1,93 +1,112 @@
 package com.biglol.getinline.repository;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
-
-import java.time.LocalDateTime;
-
+import com.biglol.getinline.constant.EventStatus;
+import com.biglol.getinline.dto.EventViewResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 
-import com.biglol.getinline.constant.EventStatus;
-import com.biglol.getinline.constant.PlaceType;
-import com.biglol.getinline.domain.Event;
-import com.biglol.getinline.domain.Place;
-import com.querydsl.core.BooleanBuilder;
+import java.time.LocalDateTime;
 
-@DataJpaTest // 이미 Transactional을 가지고 있음. 내용이 끝나면 롤백이 자동으로 일어나게 됨
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.junit.jupiter.api.Assertions.*;
+
+@DisplayName("DB - 이벤트")
+@DataJpaTest
 class EventRepositoryTest {
-    private final EventRepository sut;
-    private final TestEntityManager testEntityManager;
+    private final EventRepository eventRepository;
 
-    public EventRepositoryTest(
-            @Autowired EventRepository sut, @Autowired TestEntityManager testEntityManager) {
-        this.sut = sut;
-        this.testEntityManager = testEntityManager;
+    public EventRepositoryTest(@Autowired EventRepository eventRepository) {
+        this.eventRepository = eventRepository;
     }
 
-    @DisplayName("test")
+    @DisplayName("이벤트 뷰 데이터를 검색 파라미터와 함께 조회하면, 조건에 맞는 데이터를 페이징 처리하여 리턴한다.")
     @Test
-    void test() {
+    void givenSearchParams_whenFindingEventViewPage_thenReturnsEventViewResponsePage() {
         // Given
-        Place place = createPlace();
-        Event event = createEvent(place);
-        testEntityManager.persist(place); // 테스트 데이터를 data.sql로 넣었으니 사실 entitymanager사용할 필요가 없음
-        testEntityManager.persist(event);
+
 
         // When
-        Iterable<Event> events =
-                sut.findAll(new BooleanBuilder()); // Predicate이 interface라서 그대로 넣어줄 수 없고 Predicate을
-        // 구현하는 걸로 BooleanBuilder사용. true false로 where 조건의
-        // 결과를 리턴하는 건데 where 절의 결과가 true다 false다 이걸 만들 때
-        // BooleanBuilder사용. 지금은 검색어를 넣지 않으니 가능
+        Page<EventViewResponse> eventPage = eventRepository.findEventViewPageBySearchParams(
+                "배드민턴",
+                "운동1",
+                EventStatus.OPENED,
+                LocalDateTime.of(2021, 1, 1, 0, 0, 0),
+                LocalDateTime.of(2021, 1, 2, 0, 0, 0),
+                PageRequest.of(0, 5)
+        );
 
         // Then
-        assertThat(events).hasSize(7); // 7개가 되고 마지막은 자동 롤백
+        assertThat(eventPage.getTotalPages()).isEqualTo(1);
+        assertThat(eventPage.getNumberOfElements()).isEqualTo(1);
+        assertThat(eventPage.getContent().get(0))
+                .hasFieldOrPropertyWithValue("placeName", "서울 배드민턴장")
+                .hasFieldOrPropertyWithValue("eventName", "운동1")
+                .hasFieldOrPropertyWithValue("eventStatus", EventStatus.OPENED)
+                .hasFieldOrPropertyWithValue("eventStartDatetime", LocalDateTime.of(2021, 1, 1, 9, 0, 0))
+                .hasFieldOrPropertyWithValue("eventEndDatetime", LocalDateTime.of(2021, 1, 1, 12, 0, 0));
+
     }
 
-    private Event createEvent(Place place) {
-        return createEvent(
-                //                1L,
-                //                1L,
-                place, "test event", EventStatus.ABORTED, LocalDateTime.now(), LocalDateTime.now());
+    @DisplayName("이벤트 뷰 데이터 검색어에 따른 조회 결과가 없으면, 빈 데이터를 페이징 정보와 함께 리턴한다.")
+    @Test
+    void givenSearchParams_whenFindingNonexistentEventViewPage_thenReturnsEmptyEventViewResponsePage() {
+        // Given
+
+        // When
+        Page<EventViewResponse> eventPage = eventRepository.findEventViewPageBySearchParams(
+                "없은 장소",
+                "없는 이벤트",
+                null,
+                LocalDateTime.of(1000, 1, 1, 1, 1, 1),
+                LocalDateTime.of(1000, 1, 1, 1, 1, 0),
+                PageRequest.of(0, 5)
+        );
+
+        // Then
+        assertThat(eventPage).hasSize(0);
     }
 
-    private Event createEvent(
-            //            long id,
-            //            long placeId,
-            Place place,
-            String eventName,
-            EventStatus eventStatus,
-            LocalDateTime eventStartDateTime,
-            LocalDateTime eventEndDateTime) {
-        Event event =
-                Event.of(
-                        place,
-                        eventName,
-                        eventStatus,
-                        eventStartDateTime,
-                        eventEndDateTime,
-                        0,
-                        24,
-                        "마스크 꼭 착용하세요");
-        //        ReflectionTestUtils.setField(event, "id", id);
+    @DisplayName("이벤트 뷰 데이터를 검색 파라미터 없이 페이징 값만 주고 조회하면, 전체 데이터를 페이징 처리하여 리턴한다.")
+    @Test
+    void givenPagingInfoOnly_whenFindingEventViewPage_thenReturnsEventViewResponsePage() {
+        // Given
 
-        return event;
+        // When
+        Page<EventViewResponse> eventPage = eventRepository.findEventViewPageBySearchParams(
+                null,
+                null,
+                null,
+                null,
+                null,
+                PageRequest.of(0, 5)
+        );
+
+        // Then
+        assertThat(eventPage).hasSize(5);
     }
 
-    private Place createPlace() {
-        Place place =
-                Place.of(PlaceType.COMMON, "test place", "test address", "010-1234-1234", 10, null);
-        //        ReflectionTestUtils.setField(place, "id", 1L); // ReflectionTestUtils는 테스트 도구 중에
-        // 지원해주는 거임. test중에 쓰고 reflection을 도와줌
-        // entity안에 id는 setter을 가지고 있지 않음. 영속성 context를 사용하지 않고 테스트 해야 할 때 저 부분이 null인 상태로 테스트를 해야되는
-        // 문제가 발생.
-        // 그래서 ReflectionTestUtils로 강제로 private field를 찾아서 데이터를 넣어줌
-        // 영속성 컨텍스트에 넣을거라 주석처리
+    @DisplayName("이벤트 뷰 데이터를 페이징 정보 없이 조회하면, 에러를 리턴한다.")
+    @Test
+    void givenNothing_whenFindingEventViewPage_thenThrowsError() {
+        // Given
 
-        return place;
+        // When
+        Throwable t = catchThrowable(() -> eventRepository.findEventViewPageBySearchParams(
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+        ));
+
+        // Then
+        assertThat(t).isInstanceOf(InvalidDataAccessApiUsageException.class);
     }
 }

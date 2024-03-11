@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import com.biglol.getinline.repository.querydsl.EventRepositoryCustom;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
@@ -16,10 +17,12 @@ import com.querydsl.core.types.dsl.ComparableExpression;
 import com.querydsl.core.types.dsl.StringExpression;
 
 // QuerydslPredicateExecutor는 모든 필드들을 부분적으로 검색할 수 있게 해줌
+// 구현체 안 만듦. JpaRepository가 해줌. Spring Data JPA가 Simple JPA 리포지토리를 주입해줌
 public interface EventRepository
         extends JpaRepository<
                         Event,
                         Long>, // JpaRepository대신 EventReadOnlyRepository로 변경 가능 (조회 기능만 넣고 싶으면)
+        EventRepositoryCustom, // 넣어주면 자연스레 연동됨
                 QuerydslPredicateExecutor<Event>,
                 QuerydslBinderCustomizer<QEvent> {
     //    @Query("select e from Event e where eventName = :eventName and eventStatus =

@@ -1,4 +1,4 @@
--- mysql.server start/stop
+-- mysql.server start/stop, simplepw
 
 insert into `place` (`place_type`, `place_name`, `address`, `phone_number`, `capacity`, `memo`)
 values

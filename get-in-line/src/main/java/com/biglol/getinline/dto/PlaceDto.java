@@ -14,7 +14,12 @@ public record PlaceDto(
         Integer capacity,
         String memo,
         LocalDateTime createdAt,
-        LocalDateTime modifiedAt) {
+        LocalDateTime modifiedAt
+) {
+
+    public static PlaceDto idOnly(Long id) {
+        return PlaceDto.of(id, null, null, null, null, null, null, null, null);
+    }
 
     public static PlaceDto of(
             Long id,
@@ -25,17 +30,9 @@ public record PlaceDto(
             Integer capacity,
             String memo,
             LocalDateTime createdAt,
-            LocalDateTime modifiedAt) {
-        return new PlaceDto(
-                id,
-                placeType,
-                placeName,
-                address,
-                phoneNumber,
-                capacity,
-                memo,
-                createdAt,
-                modifiedAt);
+            LocalDateTime modifiedAt
+    ) {
+        return new PlaceDto(id, placeType, placeName, address, phoneNumber, capacity, memo, createdAt, modifiedAt);
     }
 
     public static PlaceDto of(Place place) {
@@ -48,7 +45,8 @@ public record PlaceDto(
                 place.getCapacity(),
                 place.getMemo(),
                 place.getCreatedAt(),
-                place.getModifiedAt());
+                place.getModifiedAt()
+        );
     }
 
     public Place toEntity() {
@@ -56,25 +54,14 @@ public record PlaceDto(
     }
 
     public Place updateEntity(Place place) {
-        if (placeType != null) {
-            place.setPlaceType(placeType);
-        }
-        if (placeName != null) {
-            place.setPlaceName(placeName);
-        }
-        if (address != null) {
-            place.setAddress(address);
-        }
-        if (phoneNumber != null) {
-            place.setPhoneNumber(phoneNumber);
-        }
-        if (capacity != null) {
-            place.setCapacity(capacity);
-        }
-        if (memo != null) {
-            place.setMemo(memo);
-        }
+        if (placeType != null) { place.setPlaceType(placeType); }
+        if (placeName != null) { place.setPlaceName(placeName); }
+        if (address != null) { place.setAddress(address); }
+        if (phoneNumber != null) { place.setPhoneNumber(phoneNumber); }
+        if (capacity != null) { place.setCapacity(capacity); }
+        if (memo != null) { place.setMemo(memo); }
 
         return place;
     }
+
 }

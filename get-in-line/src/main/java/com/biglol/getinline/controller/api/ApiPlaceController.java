@@ -15,7 +15,7 @@ import com.biglol.getinline.dto.PlaceRequest;
 @Deprecated
 // @RequestMapping("/api")
 // @RestController
-public class APIPlaceController {
+public class ApiPlaceController {
     //    @GetMapping("/places")
     //    public APIDataResponse<List<PlaceDto>> getPlaces() {
     //        return APIDataResponse.of(

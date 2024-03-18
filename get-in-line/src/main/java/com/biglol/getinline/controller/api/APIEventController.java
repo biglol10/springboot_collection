@@ -95,25 +95,29 @@ public class APIEventController {
     //    }
 
     @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping("/events")
-    public ApiDataResponse<String> createEvent(@Valid @RequestBody EventRequest eventRequest) {
-        boolean result = eventService.createEvent(eventRequest.toDTO());
+    @PostMapping("/place/{placeId}/events")
+    public ApiDataResponse<String> createEvent(
+            @Valid @RequestBody EventRequest eventRequest,
+            @PathVariable Long placeId
+    ) {
+        boolean result = eventService.createEvent(eventRequest.toDto(PlaceDto.idOnly(placeId)));
 
         return ApiDataResponse.of(Boolean.toString(result));
     }
 
     @GetMapping("/events/{eventId}")
     public ApiDataResponse<EventResponse> getEvent(@Positive @PathVariable Long eventId) {
-        EventResponse eventResponse =
-                EventResponse.from(eventService.getEvent(eventId).orElse(null));
+        EventResponse eventResponse = EventResponse.from(eventService.getEvent(eventId).orElse(null));
 
         return ApiDataResponse.of(eventResponse);
     }
 
     @PutMapping("/events/{eventId}")
     public ApiDataResponse<String> modifyEvent(
-            @Positive @PathVariable Long eventId, @Valid @RequestBody EventRequest eventRequest) {
-        boolean result = eventService.modifyEvent(eventId, eventRequest.toDTO());
+            @Positive @PathVariable Long eventId,
+            @Valid @RequestBody EventRequest eventRequest
+    ) {
+        boolean result = eventService.modifyEvent(eventId, eventRequest.toDto(null));
         return ApiDataResponse.of(Boolean.toString(result));
     }
 

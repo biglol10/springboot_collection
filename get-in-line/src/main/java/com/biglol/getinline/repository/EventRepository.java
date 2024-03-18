@@ -4,7 +4,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import com.biglol.getinline.domain.Place;
 import com.biglol.getinline.repository.querydsl.EventRepositoryCustom;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
@@ -36,20 +39,23 @@ public interface EventRepository
 
     // 이벤트에서 api호출해서 이벤트 조회할 때 검색어들을 이 안에 넣으려고 했음
     // 연관관계를 맺으면서 place name으로 조회하는게 가능해짐. 그래서 place.placeName으로 넣음
+    // QuerydslPredicateExecutor랑 QuerydslBinderCustomizer를 이용해서 검색 쿼리를 자동으로 만들어줌
     @Override
     default void customize(QuerydslBindings bindings, QEvent root) {
         bindings.excludeUnlistedProperties(true);
-        bindings.including(
+        bindings.including( // 검색할 것들 지정
                 root.place.placeName,
                 root.eventName,
                 root.eventStatus,
                 root.eventStartDatetime,
                 root.eventEndDatetime);
-        bindings.bind(root.place.placeName).first(StringExpression::containsIgnoreCase);
+        bindings.bind(root.place.placeName).as("placeName").first(StringExpression::containsIgnoreCase); // placeName만 넣고도 검색이 되게끔
         bindings.bind(root.eventName).first(StringExpression::containsIgnoreCase);
         bindings.bind(root.eventStartDatetime).first(ComparableExpression::goe);
         bindings.bind(root.eventEndDatetime).first(ComparableExpression::loe);
     }
+
+    Page<Event> findByPlace(Place place, Pageable pageable);
 }
 
 //// TODO: 인스턴스 설정 관리를 위해 임시로 default 사용. repository layer 구현이 완성되면 삭제

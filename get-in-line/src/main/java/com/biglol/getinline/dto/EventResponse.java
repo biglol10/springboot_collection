@@ -13,7 +13,8 @@ public record EventResponse(
         LocalDateTime eventEndDatetime,
         Integer currentNumberOfPeople,
         Integer capacity,
-        String memo) {
+        String memo
+) {
 
     public static EventResponse of(
             Long id,
@@ -24,7 +25,8 @@ public record EventResponse(
             LocalDateTime eventEndDatetime,
             Integer currentNumberOfPeople,
             Integer capacity,
-            String memo) {
+            String memo
+    ) {
         return new EventResponse(
                 id,
                 place,
@@ -34,27 +36,31 @@ public record EventResponse(
                 eventEndDatetime,
                 currentNumberOfPeople,
                 capacity,
-                memo);
+                memo
+        );
     }
 
-    public static EventResponse from(EventDto eventDTO) {
-        if (eventDTO == null) {
-            return null;
-        }
+    public static EventResponse from(EventDto eventDto) {
+        if (eventDto == null) { return null; }
         return EventResponse.of(
-                eventDTO.id(),
-                eventDTO.placeDto(),
-                eventDTO.eventName(),
-                eventDTO.eventStatus(),
-                eventDTO.eventStartDatetime(),
-                eventDTO.eventEndDatetime(),
-                eventDTO.currentNumberOfPeople(),
-                eventDTO.capacity(),
-                eventDTO.memo());
+                eventDto.id(),
+                eventDto.placeDto(),
+                eventDto.eventName(),
+                eventDto.eventStatus(),
+                eventDto.eventStartDatetime(),
+                eventDto.eventEndDatetime(),
+                eventDto.currentNumberOfPeople(),
+                eventDto.capacity(),
+                eventDto.memo()
+        );
     }
 
-    // event/index.th.xml 의 event.placeName 때문에 추가
-    public String getPlaceName() {
-        return this.place.placeName();
+    public static EventResponse empty(PlaceDto placeDto) {
+        return EventResponse.of(null, placeDto, null, null, null, null, null, null, null);
     }
+
+    public String getPlaceName() {
+        return this.place().placeName();
+    }
+
 }

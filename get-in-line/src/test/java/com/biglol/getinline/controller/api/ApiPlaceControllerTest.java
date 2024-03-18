@@ -1,8 +1,9 @@
 package com.biglol.getinline.controller.api;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.biglol.getinline.constant.ErrorCode;
+import com.biglol.getinline.constant.PlaceType;
+import com.biglol.getinline.dto.PlaceRequest;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -11,21 +12,22 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import com.biglol.getinline.constant.ErrorCode;
-import com.biglol.getinline.constant.PlaceType;
-import com.biglol.getinline.dto.PlaceRequest;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @Deprecated
 @Disabled("API 컨트롤러가 필요없는 상황이어서 비활성화")
 @DisplayName("API 컨트롤러 - 장소")
-@WebMvcTest(APIPlaceController.class)
-class APIPlaceControllerTest {
+@WebMvcTest(ApiPlaceController.class)
+class ApiPlaceControllerTest {
 
     private final MockMvc mvc;
     private final ObjectMapper mapper;
 
-    public APIPlaceControllerTest(@Autowired MockMvc mvc, @Autowired ObjectMapper mapper) {
+    public ApiPlaceControllerTest(
+            @Autowired MockMvc mvc,
+            @Autowired ObjectMapper mapper
+            ) {
         this.mvc = mvc;
         this.mapper = mapper;
     }
@@ -55,20 +57,22 @@ class APIPlaceControllerTest {
     @Test
     void givenPlace_whenCreatingAPlace_thenReturnsSuccessfulStandardResponse() throws Exception {
         // Given
-        PlaceRequest placeRequest =
-                PlaceRequest.of(
-                        PlaceType.COMMON,
-                        "랄라배드민턴장",
-                        "서울시 강남구 강남대로 1234",
-                        "010-1234-5678",
-                        30,
-                        "신장개업");
+        PlaceRequest placeRequest = PlaceRequest.of(
+                null,
+                PlaceType.COMMON,
+                "랄라배드민턴장",
+                "서울시 강남구 강남대로 1234",
+                "010-1234-5678",
+                30,
+                "신장개업"
+        );
 
         // When & Then
         mvc.perform(
-                        post("/api/places")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(mapper.writeValueAsString(placeRequest)))
+                post("/api/places")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(placeRequest))
+        )
                 .andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.success").value(true))
@@ -78,8 +82,7 @@ class APIPlaceControllerTest {
 
     @DisplayName("[API][GET] 단일 장소 조회 - 장소 있는 경우, 장소 데이터를 담은 표준 API 출력")
     @Test
-    void givenPlaceId_whenRequestingExistentPlace_thenReturnsPlaceInStandardResponse()
-            throws Exception {
+    void givenPlaceId_whenRequestingExistentPlace_thenReturnsPlaceInStandardResponse() throws Exception {
         // Given
         long placeId = 1L;
 
@@ -101,8 +104,7 @@ class APIPlaceControllerTest {
 
     @DisplayName("[API][GET] 단일 장소 조회 - 장소 없는 경우, 빈 표준 API 출력")
     @Test
-    void givenPlaceId_whenRequestingNonexistentPlace_thenReturnsEmptyStandardResponse()
-            throws Exception {
+    void givenPlaceId_whenRequestingNonexistentPlace_thenReturnsEmptyStandardResponse() throws Exception {
         // Given
         long placeId = 2L;
 
@@ -121,20 +123,22 @@ class APIPlaceControllerTest {
     void givenPlace_whenModifyingAPlace_thenReturnsSuccessfulStandardResponse() throws Exception {
         // Given
         long placeId = 1L;
-        PlaceRequest placeRequest =
-                PlaceRequest.of(
-                        PlaceType.COMMON,
-                        "랄라배드민턴장",
-                        "서울시 강남구 강남대로 1234",
-                        "010-1234-5678",
-                        30,
-                        "신장개업");
+        PlaceRequest placeRequest = PlaceRequest.of(
+                null,
+                PlaceType.COMMON,
+                "랄라배드민턴장",
+                "서울시 강남구 강남대로 1234",
+                "010-1234-5678",
+                30,
+                "신장개업"
+        );
 
         // When & Then
         mvc.perform(
-                        put("/api/places/" + placeId)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(mapper.writeValueAsString(placeRequest)))
+                put("/api/places/" + placeId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(placeRequest))
+        )
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.success").value(true))
@@ -156,4 +160,5 @@ class APIPlaceControllerTest {
                 .andExpect(jsonPath("$.errorCode").value(ErrorCode.OK.getCode()))
                 .andExpect(jsonPath("$.message").value(ErrorCode.OK.getMessage()));
     }
+
 }

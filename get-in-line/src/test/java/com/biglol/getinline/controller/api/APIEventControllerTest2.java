@@ -10,7 +10,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Disabled;
@@ -57,8 +56,8 @@ class APIEventControllerTest2 {
     void givenParameters_whenRequestingEvents_thenReturnsListOfEventsInStandardResponse()
             throws Exception {
         // Given
-//        given(eventService.getEvents(any(), any(), any(), any(), any()))
-//                .willReturn(List.of(createEventDTO()));
+        //        given(eventService.getEvents(any(), any(), any(), any(), any()))
+        //                .willReturn(List.of(createEventDTO()));
 
         // When & Then
         mvc.perform(
@@ -90,7 +89,7 @@ class APIEventControllerTest2 {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.errorCode").value(ErrorCode.OK.getCode()))
                 .andExpect(jsonPath("$.message").value(ErrorCode.OK.getMessage()));
-//        then(eventService).should().getEvents(any(), any(), any(), any(), any());
+        //        then(eventService).should().getEvents(any(), any(), any(), any(), any());
     }
 
     @DisplayName("[API][GET] 이벤트 리스트 조회 - 잘못된 검색 파라미터")

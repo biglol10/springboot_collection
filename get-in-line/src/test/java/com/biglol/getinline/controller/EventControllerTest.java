@@ -6,9 +6,10 @@ import static org.mockito.BDDMockito.then;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import com.biglol.getinline.constant.EventStatus;
-import com.biglol.getinline.dto.EventDto;
-import com.biglol.getinline.service.EventService;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,17 +20,16 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
+import com.biglol.getinline.constant.EventStatus;
+import com.biglol.getinline.dto.EventDto;
+import com.biglol.getinline.service.EventService;
 
 @WebMvcTest(EventController.class)
 class EventControllerTest {
 
     private final MockMvc mvc;
 
-    @MockBean
-    private EventService eventService;
+    @MockBean private EventService eventService;
 
     public EventControllerTest(@Autowired MockMvc mvc) {
         this.mvc = mvc;
@@ -55,7 +55,8 @@ class EventControllerTest {
     @Test
     void givenNothing_whenRequestingCustomEventsPage_thenReturnsEventsPage() throws Exception {
         // Given
-        given(eventService.getEventViewResponse(any(), any(), any(), any(), any(), any())).willReturn(Page.empty());
+        given(eventService.getEventViewResponse(any(), any(), any(), any(), any(), any()))
+                .willReturn(Page.empty());
 
         // When & Then
         mvc.perform(get("/events/custom"))
@@ -76,14 +77,15 @@ class EventControllerTest {
         EventStatus eventStatus = EventStatus.OPENED;
         LocalDateTime eventStartDatetime = LocalDateTime.of(2021, 1, 1, 0, 0, 0);
         LocalDateTime eventEndDatetime = LocalDateTime.of(2021, 1, 2, 0, 0, 0);
-        given(eventService.getEventViewResponse(
-                placeName,
-                eventName,
-                eventStatus,
-                eventStartDatetime,
-                eventEndDatetime,
-                PageRequest.of(1, 3)
-        )).willReturn(Page.empty());
+        given(
+                        eventService.getEventViewResponse(
+                                placeName,
+                                eventName,
+                                eventStatus,
+                                eventStartDatetime,
+                                eventEndDatetime,
+                                PageRequest.of(1, 3)))
+                .willReturn(Page.empty());
 
         // When & Then
         mvc.perform(
@@ -94,21 +96,21 @@ class EventControllerTest {
                                 .queryParam("eventStartDatetime", eventStartDatetime.toString())
                                 .queryParam("eventEndDatetime", eventEndDatetime.toString())
                                 .queryParam("page", "1")
-                                .queryParam("size", "3")
-                )
+                                .queryParam("size", "3"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML))
                 .andExpect(view().name("event/index"))
                 .andExpect(model().hasNoErrors())
                 .andExpect(model().attributeExists("events"));
-        then(eventService).should().getEventViewResponse(
-                placeName,
-                eventName,
-                eventStatus,
-                eventStartDatetime,
-                eventEndDatetime,
-                PageRequest.of(1, 3)
-        );
+        then(eventService)
+                .should()
+                .getEventViewResponse(
+                        placeName,
+                        eventName,
+                        eventStatus,
+                        eventStartDatetime,
+                        eventEndDatetime,
+                        PageRequest.of(1, 3));
     }
 
     @DisplayName("[view][GET] 이벤트 리스트 페이지 - 커스텀 데이터 + 검색 파라미터 (장소명, 이벤트명 잘못된 입력)")
@@ -120,14 +122,15 @@ class EventControllerTest {
         EventStatus eventStatus = EventStatus.OPENED;
         LocalDateTime eventStartDatetime = LocalDateTime.of(2021, 1, 1, 0, 0, 0);
         LocalDateTime eventEndDatetime = LocalDateTime.of(2021, 1, 2, 0, 0, 0);
-        given(eventService.getEventViewResponse(
-                placeName,
-                eventName,
-                eventStatus,
-                eventStartDatetime,
-                eventEndDatetime,
-                PageRequest.of(1, 3)
-        )).willReturn(Page.empty());
+        given(
+                        eventService.getEventViewResponse(
+                                placeName,
+                                eventName,
+                                eventStatus,
+                                eventStartDatetime,
+                                eventEndDatetime,
+                                PageRequest.of(1, 3)))
+                .willReturn(Page.empty());
 
         // When & Then
         mvc.perform(
@@ -138,8 +141,7 @@ class EventControllerTest {
                                 .queryParam("eventStartDatetime", eventStartDatetime.toString())
                                 .queryParam("eventEndDatetime", eventEndDatetime.toString())
                                 .queryParam("page", "1")
-                                .queryParam("size", "3")
-                )
+                                .queryParam("size", "3"))
                 .andExpect(status().isInternalServerError())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML))
                 .andExpect(view().name("error"))
@@ -152,9 +154,12 @@ class EventControllerTest {
     void givenEventId_whenRequestingEventDetailPage_thenReturnsEventDetailPage() throws Exception {
         // Given
         long eventId = 1L;
-        given(eventService.getEvent(eventId)).willReturn(Optional.of(
-                EventDto.of(eventId, null, null, null, null, null, null, null, null, null, null)
-        ));
+        given(eventService.getEvent(eventId))
+                .willReturn(
+                        Optional.of(
+                                EventDto.of(
+                                        eventId, null, null, null, null, null, null, null, null,
+                                        null, null)));
 
         // When & Then
         mvc.perform(get("/events/" + eventId))
@@ -168,7 +173,8 @@ class EventControllerTest {
 
     @DisplayName("[view][GET] 이벤트 세부 정보 페이지 - 데이터 없음")
     @Test
-    void givenNonexistentEventId_whenRequestingEventDetailPage_thenReturnsErrorPage() throws Exception {
+    void givenNonexistentEventId_whenRequestingEventDetailPage_thenReturnsErrorPage()
+            throws Exception {
         // Given
         long eventId = 0L;
         given(eventService.getEvent(eventId)).willReturn(Optional.empty());

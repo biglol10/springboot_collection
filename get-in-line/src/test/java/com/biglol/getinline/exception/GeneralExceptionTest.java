@@ -1,15 +1,16 @@
 package com.biglol.getinline.exception;
 
-import com.biglol.getinline.constant.ErrorCode;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
+
+import java.util.stream.Stream;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.stream.Stream;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
+import com.biglol.getinline.constant.ErrorCode;
 
 @DisplayName("에러 처리 - 기본 예외")
 class GeneralExceptionTest {
@@ -17,7 +18,8 @@ class GeneralExceptionTest {
     @DisplayName("예외 생성 시 기본 메시지, 에러 코드")
     @MethodSource
     @ParameterizedTest(name = "[{index}] message({2}) => \"{1}\"")
-    void givenException_whenInstantiating_thenContainsRelevantInformation(Throwable input, String expectedMessage, ErrorCode expectedErrorCode) {
+    void givenException_whenInstantiating_thenContainsRelevantInformation(
+            Throwable input, String expectedMessage, ErrorCode expectedErrorCode) {
         // Given
 
         // When & Then
@@ -36,12 +38,16 @@ class GeneralExceptionTest {
                 arguments(new GeneralException(), "Internal error", ErrorCode.INTERNAL_ERROR),
                 arguments(new GeneralException(msg), msg, ErrorCode.INTERNAL_ERROR),
                 arguments(new GeneralException(msg, t), msg, ErrorCode.INTERNAL_ERROR),
-                arguments(new GeneralException(t), "Internal error - " + t.getMessage(), ErrorCode.INTERNAL_ERROR),
+                arguments(
+                        new GeneralException(t),
+                        "Internal error - " + t.getMessage(),
+                        ErrorCode.INTERNAL_ERROR),
                 arguments(new GeneralException(errorCode), errorCode.getMessage(), errorCode),
                 arguments(new GeneralException(errorCode, msg), msg, errorCode),
                 arguments(new GeneralException(errorCode, msg, t), msg, errorCode),
-                arguments(new GeneralException(errorCode, t), errorCode.getMessage() + " - " + t.getMessage(), errorCode)
-        );
+                arguments(
+                        new GeneralException(errorCode, t),
+                        errorCode.getMessage() + " - " + t.getMessage(),
+                        errorCode));
     }
-
 }

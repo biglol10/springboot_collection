@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import com.biglol.getinline.domain.Place;
-import com.biglol.getinline.repository.querydsl.EventRepositoryCustom;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,7 +13,9 @@ import org.springframework.data.querydsl.binding.QuerydslBindings;
 
 import com.biglol.getinline.constant.EventStatus;
 import com.biglol.getinline.domain.Event;
+import com.biglol.getinline.domain.Place;
 import com.biglol.getinline.domain.QEvent;
+import com.biglol.getinline.repository.querydsl.EventRepositoryCustom;
 import com.querydsl.core.types.dsl.ComparableExpression;
 import com.querydsl.core.types.dsl.StringExpression;
 
@@ -25,7 +25,7 @@ public interface EventRepository
         extends JpaRepository<
                         Event,
                         Long>, // JpaRepository대신 EventReadOnlyRepository로 변경 가능 (조회 기능만 넣고 싶으면)
-        EventRepositoryCustom, // 넣어주면 자연스레 연동됨
+                EventRepositoryCustom, // 넣어주면 자연스레 연동됨
                 QuerydslPredicateExecutor<Event>,
                 QuerydslBinderCustomizer<QEvent> {
     //    @Query("select e from Event e where eventName = :eventName and eventStatus =
@@ -49,7 +49,9 @@ public interface EventRepository
                 root.eventStatus,
                 root.eventStartDatetime,
                 root.eventEndDatetime);
-        bindings.bind(root.place.placeName).as("placeName").first(StringExpression::containsIgnoreCase); // placeName만 넣고도 검색이 되게끔
+        bindings.bind(root.place.placeName)
+                .as("placeName")
+                .first(StringExpression::containsIgnoreCase); // placeName만 넣고도 검색이 되게끔
         bindings.bind(root.eventName).first(StringExpression::containsIgnoreCase);
         bindings.bind(root.eventStartDatetime).first(ComparableExpression::goe);
         bindings.bind(root.eventEndDatetime).first(ComparableExpression::loe);

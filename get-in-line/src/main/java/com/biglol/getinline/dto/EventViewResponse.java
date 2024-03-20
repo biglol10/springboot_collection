@@ -1,8 +1,8 @@
 package com.biglol.getinline.dto;
 
-import com.biglol.getinline.constant.EventStatus;
-
 import java.time.LocalDateTime;
+
+import com.biglol.getinline.constant.EventStatus;
 
 public record EventViewResponse(
         Long id,
@@ -13,9 +13,17 @@ public record EventViewResponse(
         LocalDateTime eventEndDatetime,
         Integer currentNumberOfPeople,
         Integer capacity,
-        String memo
-) {
-    public EventViewResponse(Long id, String placeName, String eventName, EventStatus eventStatus, LocalDateTime eventStartDatetime, LocalDateTime eventEndDatetime, Integer currentNumberOfPeople, Integer capacity, String memo) {
+        String memo) {
+    public EventViewResponse(
+            Long id,
+            String placeName,
+            String eventName,
+            EventStatus eventStatus,
+            LocalDateTime eventStartDatetime,
+            LocalDateTime eventEndDatetime,
+            Integer currentNumberOfPeople,
+            Integer capacity,
+            String memo) {
         this.id = id;
         this.placeName = placeName;
         this.eventName = eventName;
@@ -36,8 +44,7 @@ public record EventViewResponse(
             LocalDateTime eventEndDatetime,
             Integer currentNumberOfPeople,
             Integer capacity,
-            String memo
-    ) {
+            String memo) {
         return new EventViewResponse(
                 id,
                 placeName,
@@ -47,12 +54,13 @@ public record EventViewResponse(
                 eventEndDatetime,
                 currentNumberOfPeople,
                 capacity,
-                memo
-        );
+                memo);
     }
 
     public static EventViewResponse from(EventDto eventDTO) {
-        if (eventDTO == null) { return null; }
+        if (eventDTO == null) {
+            return null;
+        }
         return EventViewResponse.of(
                 eventDTO.id(),
                 eventDTO.placeDto().placeName(),
@@ -62,8 +70,6 @@ public record EventViewResponse(
                 eventDTO.eventEndDatetime(),
                 eventDTO.currentNumberOfPeople(),
                 eventDTO.capacity(),
-                eventDTO.memo()
-        );
+                eventDTO.memo());
     }
-
 }

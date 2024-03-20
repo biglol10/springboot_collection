@@ -9,8 +9,7 @@ public record PlaceResponse(
         String address,
         String phoneNumber,
         Integer capacity,
-        String memo
-) {
+        String memo) {
 
     public static PlaceResponse of(
             Long id,
@@ -19,13 +18,14 @@ public record PlaceResponse(
             String address,
             String phoneNumber,
             Integer capacity,
-            String memo
-    ) {
+            String memo) {
         return new PlaceResponse(id, placeType, placeName, address, phoneNumber, capacity, memo);
     }
 
     public static PlaceResponse from(PlaceDto placeDto) {
-        if (placeDto == null) { return null; }
+        if (placeDto == null) {
+            return null;
+        }
         return PlaceResponse.of(
                 placeDto.id(),
                 placeDto.placeType(),
@@ -33,8 +33,6 @@ public record PlaceResponse(
                 placeDto.address(),
                 placeDto.phoneNumber(),
                 placeDto.capacity(),
-                placeDto.memo()
-        );
+                placeDto.memo());
     }
-
 }

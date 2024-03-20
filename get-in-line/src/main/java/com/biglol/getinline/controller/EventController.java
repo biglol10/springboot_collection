@@ -5,9 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.biglol.getinline.constant.EventStatus;
-import com.biglol.getinline.dto.EventViewResponse;
 import jakarta.validation.constraints.Size;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
@@ -19,8 +18,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.biglol.getinline.constant.ErrorCode;
+import com.biglol.getinline.constant.EventStatus;
 import com.biglol.getinline.domain.Event;
 import com.biglol.getinline.dto.EventResponse;
+import com.biglol.getinline.dto.EventViewResponse;
 import com.biglol.getinline.exception.GeneralException;
 import com.biglol.getinline.service.EventService;
 import com.querydsl.core.types.Predicate;
@@ -52,17 +53,16 @@ public class EventController {
             EventStatus eventStatus,
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime eventStartDatetime,
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime eventEndDatetime,
-            Pageable pageable
-    ) {
+            Pageable pageable) {
         Map<String, Object> map = new HashMap<>();
-        Page<EventViewResponse> events = eventService.getEventViewResponse(
-                placeName,
-                eventName,
-                eventStatus,
-                eventStartDatetime,
-                eventEndDatetime,
-                pageable
-        );
+        Page<EventViewResponse> events =
+                eventService.getEventViewResponse(
+                        placeName,
+                        eventName,
+                        eventStatus,
+                        eventStartDatetime,
+                        eventEndDatetime,
+                        pageable);
 
         map.put("events", events);
 

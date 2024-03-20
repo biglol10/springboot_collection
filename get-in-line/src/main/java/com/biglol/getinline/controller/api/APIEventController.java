@@ -2,10 +2,7 @@ package com.biglol.getinline.controller.api;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import com.biglol.getinline.constant.PlaceType;
-import com.biglol.getinline.dto.PlaceDto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
@@ -15,9 +12,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import com.biglol.getinline.constant.EventStatus;
+import com.biglol.getinline.constant.PlaceType;
 import com.biglol.getinline.dto.ApiDataResponse;
 import com.biglol.getinline.dto.EventRequest;
 import com.biglol.getinline.dto.EventResponse;
+import com.biglol.getinline.dto.PlaceDto;
 import com.biglol.getinline.service.EventService;
 
 import lombok.RequiredArgsConstructor;
@@ -62,27 +61,27 @@ public class APIEventController {
         //                                24,
         //                                "마스크 꼭 착용하세요")));
 
-        return ApiDataResponse.of(List.of(EventResponse.of(
-                1L,
-                PlaceDto.of(
-                        1L,
-                        PlaceType.SPORTS,
-                        "배드민턴장",
-                        "서울시 가나구 다라동",
-                        "010-1111-2222",
-                        0,
-                        null,
-                        LocalDateTime.now(),
-                        LocalDateTime.now()
-                ),
-                "오후 운동",
-                EventStatus.OPENED,
-                LocalDateTime.of(2021, 1, 1, 13, 0, 0),
-                LocalDateTime.of(2021, 1, 1, 16, 0, 0),
-                0,
-                24,
-                "마스크 꼭 착용하세요"
-        )));
+        return ApiDataResponse.of(
+                List.of(
+                        EventResponse.of(
+                                1L,
+                                PlaceDto.of(
+                                        1L,
+                                        PlaceType.SPORTS,
+                                        "배드민턴장",
+                                        "서울시 가나구 다라동",
+                                        "010-1111-2222",
+                                        0,
+                                        null,
+                                        LocalDateTime.now(),
+                                        LocalDateTime.now()),
+                                "오후 운동",
+                                EventStatus.OPENED,
+                                LocalDateTime.of(2021, 1, 1, 13, 0, 0),
+                                LocalDateTime.of(2021, 1, 1, 16, 0, 0),
+                                0,
+                                24,
+                                "마스크 꼭 착용하세요")));
     }
 
     //    @PostMapping("/events")
@@ -97,9 +96,7 @@ public class APIEventController {
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/place/{placeId}/events")
     public ApiDataResponse<String> createEvent(
-            @Valid @RequestBody EventRequest eventRequest,
-            @PathVariable Long placeId
-    ) {
+            @Valid @RequestBody EventRequest eventRequest, @PathVariable Long placeId) {
         boolean result = eventService.createEvent(eventRequest.toDto(PlaceDto.idOnly(placeId)));
 
         return ApiDataResponse.of(Boolean.toString(result));
@@ -107,16 +104,15 @@ public class APIEventController {
 
     @GetMapping("/events/{eventId}")
     public ApiDataResponse<EventResponse> getEvent(@Positive @PathVariable Long eventId) {
-        EventResponse eventResponse = EventResponse.from(eventService.getEvent(eventId).orElse(null));
+        EventResponse eventResponse =
+                EventResponse.from(eventService.getEvent(eventId).orElse(null));
 
         return ApiDataResponse.of(eventResponse);
     }
 
     @PutMapping("/events/{eventId}")
     public ApiDataResponse<String> modifyEvent(
-            @Positive @PathVariable Long eventId,
-            @Valid @RequestBody EventRequest eventRequest
-    ) {
+            @Positive @PathVariable Long eventId, @Valid @RequestBody EventRequest eventRequest) {
         boolean result = eventService.modifyEvent(eventId, eventRequest.toDto(null));
         return ApiDataResponse.of(Boolean.toString(result));
     }

@@ -7,19 +7,20 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 
-import com.biglol.getinline.constant.EventStatus;
 import org.springframework.format.annotation.DateTimeFormat;
+
+import com.biglol.getinline.constant.EventStatus;
 
 public record EventRequest(
         Long id,
         @NotBlank String eventName,
         @NotNull EventStatus eventStatus,
-        @NotNull @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime eventStartDatetime,
+        @NotNull @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+                LocalDateTime eventStartDatetime,
         @NotNull @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime eventEndDatetime,
         @NotNull @PositiveOrZero Integer currentNumberOfPeople,
         @NotNull @Positive Integer capacity,
-        String memo
-) {
+        String memo) {
 
     public static EventRequest of(
             Long id,
@@ -29,8 +30,7 @@ public record EventRequest(
             LocalDateTime eventEndDatetime,
             Integer currentNumberOfPeople,
             Integer capacity,
-            String memo
-    ) {
+            String memo) {
         return new EventRequest(
                 id,
                 eventName,
@@ -39,8 +39,7 @@ public record EventRequest(
                 eventEndDatetime,
                 currentNumberOfPeople,
                 capacity,
-                memo
-        );
+                memo);
     }
 
     public EventDto toDto(PlaceDto placeDto) {
@@ -55,8 +54,6 @@ public record EventRequest(
                 this.capacity(),
                 this.memo(),
                 null,
-                null
-        );
+                null);
     }
-
 }

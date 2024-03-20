@@ -48,5 +48,4 @@ public class GeneralException extends RuntimeException {
         super(errorCode.getMessage(cause), cause);
         this.errorCode = errorCode;
     }
-
 }

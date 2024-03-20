@@ -17,12 +17,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.biglol.getinline.constant.AdminOperationStatus;
-import com.biglol.getinline.dto.*;
-import com.biglol.getinline.service.EventService;
-import com.biglol.getinline.service.PlaceService;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.catalina.security.SecurityConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -37,37 +31,41 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.biglol.getinline.constant.AdminOperationStatus;
 import com.biglol.getinline.constant.EventStatus;
 import com.biglol.getinline.constant.PlaceType;
+import com.biglol.getinline.dto.*;
+import com.biglol.getinline.service.EventService;
+import com.biglol.getinline.service.PlaceService;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @DisplayName("View 컨트롤러 - 어드민")
 @WebMvcTest(
         controllers = AdminController.class,
         excludeAutoConfiguration = SecurityAutoConfiguration.class,
-        excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = SecurityConfig.class)
-)
+        excludeFilters =
+                @ComponentScan.Filter(
+                        type = FilterType.ASSIGNABLE_TYPE,
+                        classes = SecurityConfig.class))
 class AdminControllerTest {
 
     private final MockMvc mvc;
 
-    @MockBean
-    private EventService eventService;
+    @MockBean private EventService eventService;
     @MockBean private PlaceService placeService;
 
     private final ObjectMapper mapper;
 
-
-    public AdminControllerTest(
-            @Autowired MockMvc mvc,
-            @Autowired ObjectMapper mapper
-    ) {
+    public AdminControllerTest(@Autowired MockMvc mvc, @Autowired ObjectMapper mapper) {
         this.mvc = mvc;
         this.mapper = mapper;
     }
 
     @DisplayName("[view][GET] 어드민 페이지 - 장소 리스트 뷰")
     @Test
-    void givenQueryParams_whenRequestingAdminPlacesPage_thenReturnsAdminPlacesPage() throws Exception {
+    void givenQueryParams_whenRequestingAdminPlacesPage_thenReturnsAdminPlacesPage()
+            throws Exception {
         // Given
         given(placeService.getPlaces(any())).willReturn(List.of());
 
@@ -76,8 +74,7 @@ class AdminControllerTest {
                         get("/admin/places")
                                 .queryParam("placeType", PlaceType.SPORTS.name())
                                 .queryParam("placeName", "랄라배드민턴장")
-                                .queryParam("address", "서울시 강남구 강남대로 1234")
-                )
+                                .queryParam("address", "서울시 강남구 강남대로 1234"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML))
                 .andExpect(view().name("admin/places"))
@@ -90,12 +87,15 @@ class AdminControllerTest {
 
     @DisplayName("[view][GET] 어드민 페이지 - 장소 세부 정보 뷰")
     @Test
-    void givenPlaceId_whenRequestingAdminPlaceDetailPage_thenReturnsAdminPlaceDetailPage() throws Exception {
+    void givenPlaceId_whenRequestingAdminPlaceDetailPage_thenReturnsAdminPlaceDetailPage()
+            throws Exception {
         // Given
         long placeId = 1L;
-        given(placeService.getPlace(placeId)).willReturn(Optional.of(
-                PlaceDto.of(placeId, null, null, null, null, null, null, null, null)
-        ));
+        given(placeService.getPlace(placeId))
+                .willReturn(
+                        Optional.of(
+                                PlaceDto.of(
+                                        placeId, null, null, null, null, null, null, null, null)));
         given(eventService.getEvent(eq(placeId), any(PageRequest.class))).willReturn(Page.empty());
 
         // When & Then
@@ -114,7 +114,8 @@ class AdminControllerTest {
 
     @DisplayName("[view][GET] 어드민 페이지 - 장소 세부 정보 뷰, 데이터 없음")
     @Test
-    void givenNonexistentPlaceId_whenRequestingAdminPlaceDetailPage_thenReturnsErrorPage() throws Exception {
+    void givenNonexistentPlaceId_whenRequestingAdminPlaceDetailPage_thenReturnsErrorPage()
+            throws Exception {
         // Given
         long placeId = 1L;
         given(placeService.getPlace(placeId)).willReturn(Optional.empty());
@@ -146,15 +147,22 @@ class AdminControllerTest {
     @Test
     void givenNewPlace_whenSavingPlace_thenSavesPlaceAndReturnsToListPage() throws Exception {
         // Given
-        PlaceRequest placeRequest = PlaceRequest.of(null, PlaceType.SPORTS, "강남 배드민턴장", "서울시 강남구 강남동", "010-1231-2312", 10, null);
+        PlaceRequest placeRequest =
+                PlaceRequest.of(
+                        null,
+                        PlaceType.SPORTS,
+                        "강남 배드민턴장",
+                        "서울시 강남구 강남동",
+                        "010-1231-2312",
+                        10,
+                        null);
         given(placeService.upsertPlace(placeRequest.toDto())).willReturn(true);
 
         // When & Then
         mvc.perform(
                         post("/admin/places")
                                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                                .content(objectToFormData(placeRequest))
-                )
+                                .content(objectToFormData(placeRequest)))
                 .andExpect(status().isSeeOther())
                 .andExpect(view().name("redirect:/admin/confirm"))
                 .andExpect(redirectedUrl("/admin/confirm"))
@@ -171,10 +179,7 @@ class AdminControllerTest {
         given(placeService.removePlace(placeId)).willReturn(true);
 
         // When & Then
-        mvc.perform(
-                        get("/admin/places/" + placeId + "/delete")
-                                .contentType(MediaType.TEXT_HTML)
-                )
+        mvc.perform(get("/admin/places/" + placeId + "/delete").contentType(MediaType.TEXT_HTML))
                 .andExpect(status().isSeeOther())
                 .andExpect(view().name("redirect:/admin/confirm"))
                 .andExpect(redirectedUrl("/admin/confirm"))
@@ -185,7 +190,8 @@ class AdminControllerTest {
 
     @DisplayName("[view][GET] 어드민 페이지 - 이벤트 리스트 뷰")
     @Test
-    void givenQueryParams_whenRequestingAdminEventsPage_thenReturnsAdminEventsPage() throws Exception {
+    void givenQueryParams_whenRequestingAdminEventsPage_thenReturnsAdminEventsPage()
+            throws Exception {
         // Given
         given(eventService.getEvents(any())).willReturn(List.of());
 
@@ -197,9 +203,10 @@ class AdminControllerTest {
                                 .queryParam("placeName", "랄라배드민턴장")
                                 .queryParam("eventName", "오후 운동")
                                 .queryParam("eventStatus", EventStatus.OPENED.name())
-                                .queryParam("eventStartDatetime", LocalDateTime.now().minusDays(1).toString())
-                                .queryParam("eventEndDatetime", LocalDateTime.now().toString())
-                )
+                                .queryParam(
+                                        "eventStartDatetime",
+                                        LocalDateTime.now().minusDays(1).toString())
+                                .queryParam("eventEndDatetime", LocalDateTime.now().toString()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML))
                 .andExpect(view().name("admin/events"))
@@ -211,12 +218,16 @@ class AdminControllerTest {
 
     @DisplayName("[view][GET] 어드민 페이지 - 이벤트 세부 정보 뷰")
     @Test
-    void givenEventId_whenRequestingAdminEventDetailPage_thenReturnsAdminEventDetailPage() throws Exception {
+    void givenEventId_whenRequestingAdminEventDetailPage_thenReturnsAdminEventDetailPage()
+            throws Exception {
         // Given
         long eventId = 1L;
-        given(eventService.getEvent(eventId)).willReturn(Optional.of(
-                EventDto.of(eventId, null, null, null, null, null, null, null, null, null, null)
-        ));
+        given(eventService.getEvent(eventId))
+                .willReturn(
+                        Optional.of(
+                                EventDto.of(
+                                        eventId, null, null, null, null, null, null, null, null,
+                                        null, null)));
 
         // When & Then
         mvc.perform(get("/admin/events/" + eventId))
@@ -232,7 +243,8 @@ class AdminControllerTest {
 
     @DisplayName("[view][GET] 어드민 페이지 - 이벤트 세부 정보 뷰, 데이터 없음")
     @Test
-    void givenNonexistentEventId_whenRequestingAdminEventDetailPage_thenReturnsErrorPage() throws Exception {
+    void givenNonexistentEventId_whenRequestingAdminEventDetailPage_thenReturnsErrorPage()
+            throws Exception {
         // Given
         long eventId = 1L;
         given(eventService.getEvent(eventId)).willReturn(Optional.empty());
@@ -250,7 +262,8 @@ class AdminControllerTest {
     void givenNothing_whenRequestingNewEventPage_thenReturnsNewEventPage() throws Exception {
         // Given
         long placeId = 1L;
-        PlaceDto placeDto = PlaceDto.of(null, null, "test name", null, null, null, null, null, null);
+        PlaceDto placeDto =
+                PlaceDto.of(null, null, "test name", null, null, null, null, null, null);
         EventResponse expectedEventResponse = EventResponse.empty(placeDto);
         given(placeService.getPlace(placeId)).willReturn(Optional.of(placeDto));
 
@@ -270,15 +283,24 @@ class AdminControllerTest {
     void givenNewEvent_whenSavingEvent_thenSavesEventAndReturnsToListPage() throws Exception {
         // Given
         long placeId = 1L;
-        EventRequest eventRequest = EventRequest.of(null, "test event", EventStatus.OPENED, LocalDateTime.now(), LocalDateTime.now(), 10, 10, null);
-        given(eventService.upsertEvent(eventRequest.toDto(PlaceDto.idOnly(placeId)))).willReturn(true);
+        EventRequest eventRequest =
+                EventRequest.of(
+                        null,
+                        "test event",
+                        EventStatus.OPENED,
+                        LocalDateTime.now(),
+                        LocalDateTime.now(),
+                        10,
+                        10,
+                        null);
+        given(eventService.upsertEvent(eventRequest.toDto(PlaceDto.idOnly(placeId))))
+                .willReturn(true);
 
         // When & Then
         mvc.perform(
                         post("/admin/places/" + placeId + "/events")
                                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                                .content(objectToFormData(eventRequest))
-                )
+                                .content(objectToFormData(eventRequest)))
                 .andExpect(status().isSeeOther())
                 .andExpect(view().name("redirect:/admin/confirm"))
                 .andExpect(redirectedUrl("/admin/confirm"))
@@ -295,10 +317,7 @@ class AdminControllerTest {
         given(eventService.removeEvent(eventId)).willReturn(true);
 
         // When & Then
-        mvc.perform(
-                        get("/admin/events/" + eventId + "/delete")
-                                .contentType(MediaType.TEXT_HTML)
-                )
+        mvc.perform(get("/admin/events/" + eventId + "/delete").contentType(MediaType.TEXT_HTML))
                 .andExpect(status().isSeeOther())
                 .andExpect(view().name("redirect:/admin/confirm"))
                 .andExpect(redirectedUrl("/admin/confirm"))
@@ -316,8 +335,7 @@ class AdminControllerTest {
         mvc.perform(
                         get("/admin/confirm")
                                 .flashAttr("adminOperationStatus", AdminOperationStatus.CREATE)
-                                .flashAttr("redirectUrl", "/admin/places")
-                )
+                                .flashAttr("redirectUrl", "/admin/places"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML))
                 .andExpect(view().name("admin/confirm"))
@@ -329,23 +347,38 @@ class AdminControllerTest {
     @Test
     void givenPlaceObject_whenConverting_thenReturnsFormData() {
         // Given
-        PlaceRequest placeRequest = PlaceRequest.of(null, PlaceType.SPORTS, "강남 배드민턴장", "서울시 강남구 강남동", "010-1231-2312", 10, null);
+        PlaceRequest placeRequest =
+                PlaceRequest.of(
+                        null,
+                        PlaceType.SPORTS,
+                        "강남 배드민턴장",
+                        "서울시 강남구 강남동",
+                        "010-1231-2312",
+                        10,
+                        null);
 
         // When
         String result = objectToFormData(placeRequest);
 
         // Then
-        assertThat(result).isEqualTo("placeType=SPORTS&placeName=%EA%B0%95%EB%82%A8+%EB%B0%B0%EB%93%9C%EB%AF%BC%ED%84%B4%EC%9E%A5&address=%EC%84%9C%EC%9A%B8%EC%8B%9C+%EA%B0%95%EB%82%A8%EA%B5%AC+%EA%B0%95%EB%82%A8%EB%8F%99&phoneNumber=010-1231-2312&capacity=10");
+        assertThat(result)
+                .isEqualTo(
+                        "placeType=SPORTS&placeName=%EA%B0%95%EB%82%A8+%EB%B0%B0%EB%93%9C%EB%AF%BC%ED%84%B4%EC%9E%A5&address=%EC%84%9C%EC%9A%B8%EC%8B%9C+%EA%B0%95%EB%82%A8%EA%B5%AC+%EA%B0%95%EB%82%A8%EB%8F%99&phoneNumber=010-1231-2312&capacity=10");
     }
-
 
     private String objectToFormData(Object obj) {
         Map<String, String> map = mapper.convertValue(obj, new TypeReference<>() {});
 
         return map.entrySet().stream()
-                .map(entry -> entry.getValue() == null ? "" : entry.getKey() + "=" + URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8))
+                .map(
+                        entry ->
+                                entry.getValue() == null
+                                        ? ""
+                                        : entry.getKey()
+                                                + "="
+                                                + URLEncoder.encode(
+                                                        entry.getValue(), StandardCharsets.UTF_8))
                 .filter(str -> !str.isBlank())
                 .collect(Collectors.joining("&"));
     }
-
 }

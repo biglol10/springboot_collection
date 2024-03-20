@@ -5,10 +5,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.StreamSupport;
 
-import com.biglol.getinline.domain.Event;
-import com.biglol.getinline.domain.Place;
-import com.biglol.getinline.dto.EventViewResponse;
-import com.biglol.getinline.repository.PlaceRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -17,9 +13,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.biglol.getinline.constant.ErrorCode;
 import com.biglol.getinline.constant.EventStatus;
+import com.biglol.getinline.domain.Event;
+import com.biglol.getinline.domain.Place;
 import com.biglol.getinline.dto.EventDto;
+import com.biglol.getinline.dto.EventViewResponse;
 import com.biglol.getinline.exception.GeneralException;
 import com.biglol.getinline.repository.EventRepository;
+import com.biglol.getinline.repository.PlaceRepository;
 import com.querydsl.core.types.Predicate;
 
 import lombok.RequiredArgsConstructor;
@@ -50,8 +50,7 @@ public class EventService {
             EventStatus eventStatus,
             LocalDateTime eventStartDatetime,
             LocalDateTime eventEndDatetime,
-            Pageable pageable
-    ) {
+            Pageable pageable) {
         try {
             return eventRepository.findEventViewPageBySearchParams(
                     placeName,
@@ -59,8 +58,7 @@ public class EventService {
                     eventStatus,
                     eventStartDatetime,
                     eventEndDatetime,
-                    pageable
-            );
+                    pageable);
         } catch (Exception e) {
             throw new GeneralException(ErrorCode.DATA_ACCESS_ERROR, e);
         }
@@ -82,13 +80,11 @@ public class EventService {
             Page<Event> eventPage = eventRepository.findByPlace(place, pageable);
 
             return new PageImpl<>(
-                    eventPage.getContent()
-                            .stream()
+                    eventPage.getContent().stream()
                             .map(event -> EventViewResponse.from(EventDto.of(event)))
                             .toList(),
                     eventPage.getPageable(),
-                    eventPage.getTotalElements()
-            );
+                    eventPage.getTotalElements());
         } catch (Exception e) {
             throw new GeneralException(ErrorCode.DATA_ACCESS_ERROR, e);
         }
@@ -126,7 +122,8 @@ public class EventService {
                 return false;
             }
 
-            eventRepository.findById(eventId)
+            eventRepository
+                    .findById(eventId)
                     .ifPresent(event -> eventRepository.save(dto.updateEntity(event)));
 
             return true;

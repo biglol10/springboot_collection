@@ -1,17 +1,19 @@
 package com.biglol.getinline.service;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.StreamSupport;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.biglol.getinline.constant.ErrorCode;
 import com.biglol.getinline.dto.PlaceDto;
 import com.biglol.getinline.exception.GeneralException;
 import com.biglol.getinline.repository.PlaceRepository;
 import com.querydsl.core.types.Predicate;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.StreamSupport;
+import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Transactional
@@ -70,7 +72,8 @@ public class PlaceService {
                 return false;
             }
 
-            placeRepository.findById(placeId)
+            placeRepository
+                    .findById(placeId)
                     .ifPresent(place -> placeRepository.save(dto.updateEntity(place)));
 
             return true;

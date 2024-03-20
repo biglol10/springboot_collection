@@ -13,8 +13,7 @@ public record EventResponse(
         LocalDateTime eventEndDatetime,
         Integer currentNumberOfPeople,
         Integer capacity,
-        String memo
-) {
+        String memo) {
 
     public static EventResponse of(
             Long id,
@@ -25,8 +24,7 @@ public record EventResponse(
             LocalDateTime eventEndDatetime,
             Integer currentNumberOfPeople,
             Integer capacity,
-            String memo
-    ) {
+            String memo) {
         return new EventResponse(
                 id,
                 place,
@@ -36,12 +34,13 @@ public record EventResponse(
                 eventEndDatetime,
                 currentNumberOfPeople,
                 capacity,
-                memo
-        );
+                memo);
     }
 
     public static EventResponse from(EventDto eventDto) {
-        if (eventDto == null) { return null; }
+        if (eventDto == null) {
+            return null;
+        }
         return EventResponse.of(
                 eventDto.id(),
                 eventDto.placeDto(),
@@ -51,8 +50,7 @@ public record EventResponse(
                 eventDto.eventEndDatetime(),
                 eventDto.currentNumberOfPeople(),
                 eventDto.capacity(),
-                eventDto.memo()
-        );
+                eventDto.memo());
     }
 
     public static EventResponse empty(PlaceDto placeDto) {
@@ -62,5 +60,4 @@ public record EventResponse(
     public String getPlaceName() {
         return this.place().placeName();
     }
-
 }

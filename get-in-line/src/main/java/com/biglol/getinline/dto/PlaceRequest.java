@@ -9,8 +9,7 @@ public record PlaceRequest(
         String address,
         String phoneNumber,
         Integer capacity,
-        String memo
-) {
+        String memo) {
 
     public static PlaceRequest of(
             Long id,
@@ -19,8 +18,7 @@ public record PlaceRequest(
             String address,
             String phoneNumber,
             Integer capacity,
-            String memo
-    ) {
+            String memo) {
         return new PlaceRequest(id, placeType, placeName, address, phoneNumber, capacity, memo);
     }
 
@@ -34,8 +32,6 @@ public record PlaceRequest(
                 this.capacity(),
                 this.memo(),
                 null,
-                null
-        );
+                null);
     }
-
 }

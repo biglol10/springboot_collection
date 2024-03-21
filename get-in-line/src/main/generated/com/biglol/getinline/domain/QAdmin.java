@@ -2,14 +2,17 @@ package com.biglol.getinline.domain;
 
 import static com.querydsl.core.types.PathMetadataFactory.*;
 
-import javax.annotation.processing.Generated;
-
-import com.querydsl.core.types.Path;
-import com.querydsl.core.types.PathMetadata;
 import com.querydsl.core.types.dsl.*;
+
+import com.querydsl.core.types.PathMetadata;
+import javax.annotation.processing.Generated;
+import com.querydsl.core.types.Path;
 import com.querydsl.core.types.dsl.PathInits;
 
-/** QAdmin is a Querydsl query type for Admin */
+
+/**
+ * QAdmin is a Querydsl query type for Admin
+ */
 @Generated("com.querydsl.codegen.DefaultEntitySerializer")
 public class QAdmin extends EntityPathBase<Admin> {
 
@@ -17,12 +20,9 @@ public class QAdmin extends EntityPathBase<Admin> {
 
     public static final QAdmin admin = new QAdmin("admin");
 
-    public final SetPath<AdminPlaceMap, QAdminPlaceMap> adminPlaceMaps =
-            this.<AdminPlaceMap, QAdminPlaceMap>createSet(
-                    "adminPlaceMaps", AdminPlaceMap.class, QAdminPlaceMap.class, PathInits.DIRECT2);
+    public final SetPath<AdminPlaceMap, QAdminPlaceMap> adminPlaceMaps = this.<AdminPlaceMap, QAdminPlaceMap>createSet("adminPlaceMaps", AdminPlaceMap.class, QAdminPlaceMap.class, PathInits.DIRECT2);
 
-    public final DateTimePath<java.time.LocalDateTime> createdAt =
-            createDateTime("createdAt", java.time.LocalDateTime.class);
+    public final DateTimePath<java.time.LocalDateTime> createdAt = createDateTime("createdAt", java.time.LocalDateTime.class);
 
     public final StringPath email = createString("email");
 
@@ -30,8 +30,7 @@ public class QAdmin extends EntityPathBase<Admin> {
 
     public final StringPath memo = createString("memo");
 
-    public final DateTimePath<java.time.LocalDateTime> modifiedAt =
-            createDateTime("modifiedAt", java.time.LocalDateTime.class);
+    public final DateTimePath<java.time.LocalDateTime> modifiedAt = createDateTime("modifiedAt", java.time.LocalDateTime.class);
 
     public final StringPath nickname = createString("nickname");
 
@@ -50,4 +49,6 @@ public class QAdmin extends EntityPathBase<Admin> {
     public QAdmin(PathMetadata metadata) {
         super(Admin.class, metadata);
     }
+
 }
+

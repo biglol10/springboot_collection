@@ -1,12 +1,10 @@
 package com.biglol.getinline.controller.error;
 
-import jakarta.validation.ConstraintViolationException;
+import javax.validation.ConstraintViolationException;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
@@ -81,29 +79,29 @@ public class APIExceptionHandler2 extends ResponseEntityExceptionHandler {
                 request);
     }
 
-    // 여기 내용을 똑같이 채워주돼 body만 추가
-    @Override
-    protected ResponseEntity<Object> handleExceptionInternal(
-            Exception ex,
-            @Nullable Object body,
-            HttpHeaders headers,
-            HttpStatusCode status,
-            WebRequest request) {
-        ErrorCode errorCode =
-                status.is4xxClientError()
-                        ? ErrorCode.SPRING_BAD_REQUEST
-                        : ErrorCode.SPRING_INTERNAL_ERROR;
-
-        // 원래 함수를 그대로 쓰기 위해
-        return super.handleExceptionInternal(
-                ex,
-                ApiErrorResponse.of(false, errorCode.getCode(), errorCode.getMessage(ex)),
-                headers,
-                status,
-                request);
-
-        // 이렇게 하면 handleExceptionInternal을 재구현했기 때문에 이 안에 있는 Abstract class, Response Entity,
-        // Exception Handler의 각각 세부 동작들이 전부 다 영향을 받음. 안에서 handleExceptionInternal를 호출하면
-        // 여기에서의 handleExceptionInternal를 호출하는 것과 같게 됨
-    }
+    //    // 여기 내용을 똑같이 채워주돼 body만 추가
+    //    @Override
+    //    protected ResponseEntity<Object> handleExceptionInternal(
+    //            Exception ex,
+    //            @Nullable Object body,
+    //            HttpHeaders headers,
+    //            HttpStatusCode status,
+    //            WebRequest request) {
+    //        ErrorCode errorCode =
+    //                status.is4xxClientError()
+    //                        ? ErrorCode.SPRING_BAD_REQUEST
+    //                        : ErrorCode.SPRING_INTERNAL_ERROR;
+    //
+    //        // 원래 함수를 그대로 쓰기 위해
+    //        return super.handleExceptionInternal(
+    //                ex,
+    //                ApiErrorResponse.of(false, errorCode.getCode(), errorCode.getMessage(ex)),
+    //                headers,
+    //                status,
+    //                request);
+    //
+    //        // 이렇게 하면 handleExceptionInternal을 재구현했기 때문에 이 안에 있는 Abstract class, Response Entity,
+    //        // Exception Handler의 각각 세부 동작들이 전부 다 영향을 받음. 안에서 handleExceptionInternal를 호출하면
+    //        // 여기에서의 handleExceptionInternal를 호출하는 것과 같게 됨
+    //    }
 }

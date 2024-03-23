@@ -3,7 +3,7 @@ package com.biglol.getinline.controller;
 import java.util.List;
 import java.util.Map;
 
-import jakarta.validation.Valid;
+import javax.validation.Valid;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -41,39 +41,34 @@ public class AdminController {
 
     @GetMapping("/places")
     public ModelAndView adminPlaces(@QuerydslPredicate(root = Place.class) Predicate predicate) {
-        List<PlaceResponse> places = placeService.getPlaces(predicate)
-                .stream()
-                .map(PlaceResponse::from)
-                .toList();
+        List<PlaceResponse> places =
+                placeService.getPlaces(predicate).stream().map(PlaceResponse::from).toList();
 
         return new ModelAndView(
-                "admin/places",
-                Map.of(
-                        "places", places,
-                        "placeTypeOption", PlaceType.values()
-                )
-        );
+                "admin/places", Map.of("places", places, "placeTypeOption", PlaceType.values()));
     }
 
     @GetMapping("/places/{placeId}")
     public ModelAndView adminPlaceDetail(
-            @PathVariable Long placeId,
-            @PageableDefault Pageable pageable
-    ) {
-        PlaceResponse place = placeService.getPlace(placeId)
-                .map(PlaceResponse::from)
-                .orElseThrow(() -> new GeneralException(ErrorCode.NOT_FOUND));
+            @PathVariable Long placeId, @PageableDefault Pageable pageable) {
+        PlaceResponse place =
+                placeService
+                        .getPlace(placeId)
+                        .map(PlaceResponse::from)
+                        .orElseThrow(() -> new GeneralException(ErrorCode.NOT_FOUND));
         Page<EventViewResponse> events = eventService.getEvent(placeId, pageable);
 
         return new ModelAndView(
                 "admin/place-detail",
                 Map.of(
-                        "adminOperationStatus", AdminOperationStatus.MODIFY,
-                        "place", place,
-                        "events", events,
-                        "placeTypeOption", PlaceType.values()
-                )
-        );
+                        "adminOperationStatus",
+                        AdminOperationStatus.MODIFY,
+                        "place",
+                        place,
+                        "events",
+                        events,
+                        "placeTypeOption",
+                        PlaceType.values()));
     }
 
     @GetMapping("/places/new")
@@ -87,10 +82,11 @@ public class AdminController {
     @ResponseStatus(HttpStatus.SEE_OTHER)
     @PostMapping("/places")
     public String upsertPlace(
-            @Valid PlaceRequest placeRequest,
-            RedirectAttributes redirectAttributes
-    ) {
-        AdminOperationStatus status = placeRequest.id() != null ? AdminOperationStatus.MODIFY : AdminOperationStatus.CREATE;
+            @Valid PlaceRequest placeRequest, RedirectAttributes redirectAttributes) {
+        AdminOperationStatus status =
+                placeRequest.id() != null
+                        ? AdminOperationStatus.MODIFY
+                        : AdminOperationStatus.CREATE;
         placeService.upsertPlace(placeRequest.toDto());
 
         redirectAttributes.addFlashAttribute("adminOperationStatus", status);
@@ -101,10 +97,7 @@ public class AdminController {
 
     @ResponseStatus(HttpStatus.SEE_OTHER)
     @GetMapping("/places/{placeId}/delete")
-    public String deletePlace(
-            @PathVariable Long placeId,
-            RedirectAttributes redirectAttributes
-    ) {
+    public String deletePlace(@PathVariable Long placeId, RedirectAttributes redirectAttributes) {
         placeService.removePlace(placeId);
 
         redirectAttributes.addFlashAttribute("adminOperationStatus", AdminOperationStatus.DELETE);
@@ -115,9 +108,11 @@ public class AdminController {
 
     @GetMapping("/places/{placeId}/newEvent")
     public String newEvent(@PathVariable Long placeId, Model model) {
-        EventResponse event = placeService.getPlace(placeId)
-                .map(EventResponse::empty)
-                .orElseThrow(() -> new GeneralException(ErrorCode.NOT_FOUND));
+        EventResponse event =
+                placeService
+                        .getPlace(placeId)
+                        .map(EventResponse::empty)
+                        .orElseThrow(() -> new GeneralException(ErrorCode.NOT_FOUND));
 
         model.addAttribute("adminOperationStatus", AdminOperationStatus.CREATE);
         model.addAttribute("eventStatusOption", EventStatus.values());
@@ -131,9 +126,11 @@ public class AdminController {
     public String upsertEvent(
             @Valid EventRequest eventRequest,
             @PathVariable Long placeId,
-            RedirectAttributes redirectAttributes
-    ) {
-        AdminOperationStatus status = eventRequest.id() != null ? AdminOperationStatus.MODIFY : AdminOperationStatus.CREATE;
+            RedirectAttributes redirectAttributes) {
+        AdminOperationStatus status =
+                eventRequest.id() != null
+                        ? AdminOperationStatus.MODIFY
+                        : AdminOperationStatus.CREATE;
         eventService.upsertEvent(eventRequest.toDto(PlaceDto.idOnly(placeId)));
 
         redirectAttributes.addFlashAttribute("adminOperationStatus", status);
@@ -144,10 +141,7 @@ public class AdminController {
 
     @ResponseStatus(HttpStatus.SEE_OTHER)
     @GetMapping("/events/{eventId}/delete")
-    public String deleteEvent(
-            @PathVariable Long eventId,
-            RedirectAttributes redirectAttributes
-    ) {
+    public String deleteEvent(@PathVariable Long eventId, RedirectAttributes redirectAttributes) {
         eventService.removeEvent(eventId);
 
         redirectAttributes.addFlashAttribute("adminOperationStatus", AdminOperationStatus.DELETE);
@@ -158,34 +152,31 @@ public class AdminController {
 
     @GetMapping("/events")
     public ModelAndView adminEvents(@QuerydslPredicate(root = Event.class) Predicate predicate) {
-        List<EventResponse> events = eventService.getEvents(predicate)
-                .stream()
-                .map(EventResponse::from)
-                .toList();
+        List<EventResponse> events =
+                eventService.getEvents(predicate).stream().map(EventResponse::from).toList();
 
         return new ModelAndView(
                 "admin/events",
-                Map.of(
-                        "events", events,
-                        "eventStatusOption", EventStatus.values()
-                )
-        );
+                Map.of("events", events, "eventStatusOption", EventStatus.values()));
     }
 
     @GetMapping("/events/{eventId}")
     public ModelAndView adminEventDetail(@PathVariable Long eventId) {
-        EventResponse event = eventService.getEvent(eventId)
-                .map(EventResponse::from)
-                .orElseThrow(() -> new GeneralException(ErrorCode.NOT_FOUND));
+        EventResponse event =
+                eventService
+                        .getEvent(eventId)
+                        .map(EventResponse::from)
+                        .orElseThrow(() -> new GeneralException(ErrorCode.NOT_FOUND));
 
         return new ModelAndView(
                 "admin/event-detail",
                 Map.of(
-                        "adminOperationStatus", AdminOperationStatus.MODIFY,
-                        "event", event,
-                        "eventStatusOption", EventStatus.values()
-                )
-        );
+                        "adminOperationStatus",
+                        AdminOperationStatus.MODIFY,
+                        "event",
+                        event,
+                        "eventStatusOption",
+                        EventStatus.values()));
     }
 
     @GetMapping("/confirm")

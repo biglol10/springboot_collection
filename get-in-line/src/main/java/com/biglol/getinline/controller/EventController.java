@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import jakarta.validation.constraints.Size;
+import javax.validation.constraints.Size;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

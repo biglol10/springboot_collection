@@ -1,7 +1,7 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.2.2'
-	id 'io.spring.dependency-management' version '1.1.4'
+	id 'org.springframework.boot' version '2.5.3'
+	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 	id 'com.diffplug.spotless' version '6.23.3' // Spotless 플러그인, ./gradlew spotlessApply
 }
 
@@ -33,6 +33,10 @@ repositories {
 	mavenCentral()
 }
 
+project.ext {
+	querydslVersion = dependencyManagement.importedProperties['querydsl.version']
+}
+
 spotless {
 	java {
 		// Google Java 포맷 적용
@@ -54,31 +58,55 @@ spotless {
 }
 
 dependencies {
-	developmentOnly 'org.springframework.boot:spring-boot-devtools' // automatic restart (소스 변경 후 ctrl+f9), live reload (재시작 안하고 싶으면 빌드를 gradle이 아닌 intellij로 위임)
+	// spring boot 3 하다가 버전이 안 맞아 주석처리
+//	developmentOnly 'org.springframework.boot:spring-boot-devtools' // automatic restart (소스 변경 후 ctrl+f9), live reload (재시작 안하고 싶으면 빌드를 gradle이 아닌 intellij로 위임)
+//	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+//	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+//	implementation 'org.springframework.data:spring-data-rest-hal-explorer'
+//	implementation 'org.springframework.boot:spring-boot-starter-validation'
+//	implementation 'org.springframework.boot:spring-boot-starter-web'
+//	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+//	runtimeOnly 'com.h2database:h2'
+//	runtimeOnly 'com.mysql:mysql-connector-j'
+//	compileOnly 'org.projectlombok:lombok'
+//	annotationProcessor 'org.projectlombok:lombok'
+//	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+//	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+//	// security
+//	implementation 'org.springframework.boot:spring-boot-starter-security'
+//	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+//	testImplementation 'org.springframework.security:spring-security-test'
+
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.data:spring-data-rest-hal-explorer'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity5'
 	runtimeOnly 'com.h2database:h2'
-	runtimeOnly 'com.mysql:mysql-connector-j'
+	runtimeOnly 'mysql:mysql-connector-java'
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	// security
-	implementation 'org.springframework.boot:spring-boot-starter-security'
-	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
 	testImplementation 'org.springframework.security:spring-security-test'
 
-	//Querydsl 추가
-	// ⭐ Spring boot 3.x이상에서 QueryDsl 패키지를 정의하는 방법, https://velog.io/@juhyeon1114/Spring-QueryDsl-gradle-%EC%84%A4%EC%A0%95-Spring-boot-3.0-%EC%9D%B4%EC%83%81
-	implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta' // com.querydsl:querydsl-jpa만 적어도 dependency-management에 의해 가장 최신의 버전이 붙음.
-//	annotationProcessor "com.querydsl:querydsl-apt:${dependencyManagement.importedProperties['querydsl.version']}:jakarta" // 얘의 경우 어절 수 없이 수동 설정해야 되는 부분. 다만 정말로 수동으로 하지는 않고 변수로 씀. 그루비 문법 중 하나임
-	annotationProcessor "com.querydsl:querydsl-apt:5.0.0:jakarta"
-	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
-	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+//	//Querydsl 추가, spring boot 3 하다가 버전이 안 맞아 주석처리
+//	// ⭐ Spring boot 3.x이상에서 QueryDsl 패키지를 정의하는 방법, https://velog.io/@juhyeon1114/Spring-QueryDsl-gradle-%EC%84%A4%EC%A0%95-Spring-boot-3.0-%EC%9D%B4%EC%83%81
+//	implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta' // com.querydsl:querydsl-jpa만 적어도 dependency-management에 의해 가장 최신의 버전이 붙음.
+////	annotationProcessor "com.querydsl:querydsl-apt:${dependencyManagement.importedProperties['querydsl.version']}:jakarta" // 얘의 경우 어절 수 없이 수동 설정해야 되는 부분. 다만 정말로 수동으로 하지는 않고 변수로 씀. 그루비 문법 중 하나임
+//	annotationProcessor "com.querydsl:querydsl-apt:5.0.0:jakarta"
+//	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+//	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+
+	// Querydsl
+	implementation "com.querydsl:querydsl-jpa"
+	implementation "com.querydsl:querydsl-collections"
+	annotationProcessor "com.querydsl:querydsl-apt:${project.querydslVersion}:jpa" // querydsl JPAAnnotationProcessor 사용 지정
+	annotationProcessor "jakarta.annotation:jakarta.annotation-api" // java.lang.NoClassDefFoundError (javax.annotation.Generated) 발생 대응
 }
 
 tasks.named('test') {

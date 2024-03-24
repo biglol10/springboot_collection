@@ -24,7 +24,7 @@
       <attr sel="tr[0]" th:each="event : ${events}">
         <attr sel="td.eventName" th:text="${event.eventName}" />
         <attr sel="td.eventStatus" th:text="${event.eventStatus}" />
-<!--        <attr sel="td.eventDatetime" th:text="${#temporals.format(event.eventStartDatetime, 'M/d ha', 'US')} + ' ~ ' + ${#temporals.format(event.eventEndDatetime, 'M/d ha', 'US')}" />-->
+        <attr sel="td.eventDatetime" th:text="${#temporals.format(event.eventStartDatetime, 'M/d ha', 'US')} + ' ~ ' + ${#temporals.format(event.eventEndDatetime, 'M/d ha', 'US')}" />
         <attr sel="td.people" th:text="${event.currentNumberOfPeople} + '명 / ' + ${event.capacity} + '명'" />
         <attr sel="td/a" th:text="'상세'" th:href="@{'/admin/events/' + ${event.id}}" />
       </attr>

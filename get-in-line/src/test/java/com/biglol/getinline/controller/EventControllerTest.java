@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import com.biglol.getinline.config.SecurityConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +23,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.biglol.getinline.config.SecurityConfig;
 import com.biglol.getinline.constant.EventStatus;
 import com.biglol.getinline.dto.EventDto;
 import com.biglol.getinline.service.EventService;
@@ -32,8 +32,10 @@ import com.biglol.getinline.service.EventService;
 @WebMvcTest(
         controllers = EventController.class,
         excludeAutoConfiguration = SecurityAutoConfiguration.class,
-        excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = SecurityConfig.class)
-)
+        excludeFilters =
+                @ComponentScan.Filter(
+                        type = FilterType.ASSIGNABLE_TYPE,
+                        classes = SecurityConfig.class))
 class EventControllerTest {
 
     private final MockMvc mvc;

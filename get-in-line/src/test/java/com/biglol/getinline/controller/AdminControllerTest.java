@@ -17,7 +17,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.biglol.getinline.config.SecurityConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +30,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.biglol.getinline.config.SecurityConfig;
 import com.biglol.getinline.constant.AdminOperationStatus;
 import com.biglol.getinline.constant.EventStatus;
 import com.biglol.getinline.constant.PlaceType;
@@ -43,7 +43,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @DisplayName("View 컨트롤러 - 어드민")
 @WebMvcTest(
         controllers = AdminController.class,
-        excludeAutoConfiguration = SecurityAutoConfiguration.class, // security 자동설정을 끔. SecurityConfig에 의해 모든 컨트롤러가 대상이 되는데 테스트를 위해 제외시켜줌. excludeFilters도 해줘야함
+        excludeAutoConfiguration =
+                SecurityAutoConfiguration
+                        .class, // security 자동설정을 끔. SecurityConfig에 의해 모든 컨트롤러가 대상이 되는데 테스트를 위해
+        // 제외시켜줌. excludeFilters도 해줘야함
         excludeFilters =
                 @ComponentScan.Filter(
                         type = FilterType.ASSIGNABLE_TYPE,

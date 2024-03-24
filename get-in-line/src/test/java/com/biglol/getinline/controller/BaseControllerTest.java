@@ -6,7 +6,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import com.biglol.getinline.config.SecurityConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,13 +16,16 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.biglol.getinline.config.SecurityConfig;
+
 // @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL) // 이렇게 하면 @Autowired안 써도 됨.
 // 생성자에 있는 모드 메소드 파라미터는 전부 다 Spring Container가 주도권을 가져감, 그래서 Autowired를 무조건 하려고 시도함. 그러나 비추천
 // @AutoConfigureMockMvc
 // @SpringBootTest
-//@WebMvcTest(
+// @WebMvcTest(
 //        BaseController
-//                .class) // AutoConfigureMockMvc, SpringBootTest를 이용해서 AutoConfigureMockMvc가 MockMvc를
+//                .class) // AutoConfigureMockMvc, SpringBootTest를 이용해서 AutoConfigureMockMvc가
+// MockMvc를
 //// 만들어주는거임. 더 간단하게 컨트롤러 테스트만 하는 방법. 이렇게 되면 WebMvc가 모든 컨트롤러를 읽는데 그게 싫으면 이 안에서
 //// 테스트하고 싶은 대상 컨트롤러만 가져옴
 
@@ -31,8 +33,10 @@ import org.springframework.test.web.servlet.MockMvc;
 @WebMvcTest(
         controllers = BaseController.class,
         excludeAutoConfiguration = SecurityAutoConfiguration.class,
-        excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = SecurityConfig.class)
-)
+        excludeFilters =
+                @ComponentScan.Filter(
+                        type = FilterType.ASSIGNABLE_TYPE,
+                        classes = SecurityConfig.class))
 class BaseControllerTest {
 
     //    @Autowired

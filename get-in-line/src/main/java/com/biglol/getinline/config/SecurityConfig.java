@@ -57,5 +57,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         // 데이터를 저장, 수정하는 어드민 뷰 페이지에서는
         // csrf token 을 전달할 필요가 있음
         // 이에 토큰을 설정하는 히든 엘리먼트를 추가 (<input type="hidden" id="csrf">)
+
+        // <attr sel="#csrf" th:value="${_csrf.token}" th:name="${_csrf.parameterName}" />를 넣어서 추가나 삭제버튼 누를 때 403에러가 뜨지 않게끔 방지
+        // post submit 하는 곳은 토큰을 보내주도록
     }
 }

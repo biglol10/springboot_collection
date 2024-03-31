@@ -65,7 +65,9 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
      * @return UserDetailsService
      */
 
-    // 유저와 관련된 설정
+    // 유저와 관련된 설정. Spring Security가 유저 관련 정보를 가져올 때 어떻게 가져와야 하는지 알 수 없음.
+    // Spring 입장에선 User Entity가 뭔지 모름. 그래서 코드로 어떻게 하면 유저를 가져올 수 있는지 작성
+    // Bean으로 등록하게 되면 spring security가 내부적으로 사용하게 됨
     @Bean
     @Override
     public UserDetailsService userDetailsService() {

@@ -25,6 +25,9 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
     protected  void configure(HttpSecurity http) throws Exception {
         // basic authentication
         http.httpBasic().disable(); // basic authentication filter 비활성화
+//        http.httpBasic(); // basic authentication filter 활성화 -> 로그인을 거치지 않고 직접 입력 (예시: curl로 입력)해도 일회성으로 페이지를 불러올 수 있음
+        // 로그인이라는 과정이 없어도 username, password 로그인 데이터를 base64로 인코딩해서 모든 요청에 포함해서 보내면 BasicAuthenticationFilter는 이걸 인증함
+        // 그렇기 때문에 세션이 필요없고 요청이 올 때마다 인증이 이루어짐. (stateless)
         // csrf
         http.csrf();
         // remember-me

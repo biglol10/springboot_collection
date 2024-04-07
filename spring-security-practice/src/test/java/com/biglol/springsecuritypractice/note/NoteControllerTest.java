@@ -95,7 +95,7 @@ class NoteControllerTest {
 
     @Test
     @WithUserDetails(
-            value = "user123",
+            value = "user123", // 위에 등록한 샘플 유저
             userDetailsServiceBeanName = "userDetailsService",
             setupBefore = TestExecutionEvent.TEST_EXECUTION
     )

@@ -33,4 +33,64 @@ stateless하다는건 상태를 저장하지 않고 매 요청마다 인증을 �
 
 ![img.png](z_img/img9.png)
 
-DaoAuthenticationProvider에서 this.getUserDetailsService().loadUserByUsername 부분은 SecurityConfig부분의 userDetailsService은 호출해서 유저정보를 가져옴
+DaoAuthenticationProvider에서 this.getUserDetailsService().loadUserByUsername 부분은 SecurityConfig부분의 userDetailsService은 호출해서 유저정보를 가져옴. 이후 유저 체크가 이루어짐
+
+*** CsrfFilter ***
+
+![img.png](z_img/img10.png)
+
+![img.png](z_img/img11.png)
+
+![img.png](z_img/img12.png)
+
+thymeleaf를 쓰면 페이지를 만들 때 자동으로 csrf 토큰을 포함시켜줌.  (따로 추가하지 않아도 input type="hidden" name="_csrf" value="..."/>가 추가됨)
+
+*** FilterSecurityInterceptor ***
+
+![img.png](z_img/img13.png)
+
+*** ExceptionTranslationFilter ***
+
+![img.png](z_img/img14.png)
+
+*** Spring Security Config ***
+
+![img.png](z_img/img15.png)
+
+![img.png](z_img/img16.png)
+
+hasRole("ADMIN")에서 ROLE_가 빠져있는데 이건 기본으로 되어있음
+
+![img.png](z_img/img17.png)
+
+*** security test ***
+
+![img.png](z_img/img18.png)
+
+![img.png](z_img/img19.png)
+
+![img.png](z_img/img20.png)
+
+*** Session vs JWT ***
+
+![img.png](z_img/img21.png)
+
+![img.png](z_img/img22.png)
+
+![img.png](z_img/img23.png)
+
+*** JWT ***
+
+![img.png](z_img/img24.png)
+
+![img.png](z_img/img25.png)
+
+![img.png](z_img/img26.png)
+
+![img.png](z_img/img27.png)
+
+![img.png](z_img/img28.png)
+
+JwtKey는 JWT Secret Key를 관리하고 제공. Key Rolling (키 여러개 관리)를 지원  
+JwtUtils - JWT 토큰을 생성하거나 Parsing하는 메소드를 제공  
+SigningKeyResolver - JWT의 헤더에서 kid를 찾아서 Key(SecretKey+알고리즘)를 찾아옴. Signature검증할 때 사용

@@ -23,12 +23,13 @@ class NoticeControllerTest {
 
     @Autowired
     private NoticeRepository noticeRepository;
+
     private MockMvc mockMvc;
 
     @BeforeEach
     public void setUp(@Autowired WebApplicationContext applicationContext) {
         this.mockMvc = MockMvcBuilders.webAppContextSetup(applicationContext)
-                .apply(springSecurity())
+                .apply(springSecurity()) // mockMvc에 springSecurity적용
                 .alwaysDo(print())
                 .build();
     }

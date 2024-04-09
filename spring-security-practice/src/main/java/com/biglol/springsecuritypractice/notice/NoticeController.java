@@ -9,6 +9,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 /**
@@ -27,7 +28,7 @@ public class NoticeController {
      * @return notice/index.html
      */
     @GetMapping
-    public String getNotice(Model model) {
+    public String getNotice(Model model, Principal principal) {
         SecurityContext securityContext = SecurityContextHolder.getContext();
         List<Notice> notices = noticeService.findAll();
         model.addAttribute("notices", notices);

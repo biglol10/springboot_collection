@@ -10,6 +10,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+//### Custom Filter 만들기
+//        + 프로젝트에 SpringSecurity를 포함시켜 개발하다 보면 SpringScurity에서 기본으로 제공하는 필터뿐만 아니라 개발자가 원하는 방식대로 동작하는 필터가 필요할때가 많다
+//        + 이럴때 커스텀 필터를 구현하면 된다
+//        + 커스텀 필터를 구현하기 위해서는 다른 필터와 마찬가지로 Filter Interface를 구현해야 한다
+//        + 그러나 Filter Interface를 직접 구현하게 되면 중복실행 문제가 있다
+//        + 대부분의 경우에는 OncePerRequestFilter를 구현하기를 권장한다
+
 @Slf4j
 public class StopwatchFilter extends OncePerRequestFilter {
     @Override

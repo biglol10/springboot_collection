@@ -2,7 +2,10 @@ package com.biglol.springsecuritypractice.config;
 
 import com.biglol.springsecuritypractice.filter.StopwatchFilter;
 import com.biglol.springsecuritypractice.filter.TesterAuthenticationFilter;
+import com.biglol.springsecuritypractice.jwt.JwtAuthenticationFilter;
+import com.biglol.springsecuritypractice.jwt.JwtAuthorizationFilter;
 import com.biglol.springsecuritypractice.user.User;
+import com.biglol.springsecuritypractice.user.UserRepository;
 import com.biglol.springsecuritypractice.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
@@ -13,9 +16,11 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
@@ -27,20 +32,21 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 @RequiredArgsConstructor
 public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
     private final UserService userService;
+    private final UserRepository userRepository;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        // stopwatch filter
-        http.addFilterBefore(
-                new StopwatchFilter(),
-                WebAsyncManagerIntegrationFilter.class // WebAsyncManagerIntegrationFilter가 첫번째인데 얘보다 더 앞에 위치해야 되기에 addFilterBefore씀
-        );
-
-        // tester authentication filter
-        http.addFilterBefore(
-                new TesterAuthenticationFilter(this.authenticationManager()),
-                UsernamePasswordAuthenticationFilter.class
-        );
+//        // stopwatch filter
+//        http.addFilterBefore(
+//                new StopwatchFilter(),
+//                WebAsyncManagerIntegrationFilter.class // WebAsyncManagerIntegrationFilter가 첫번째인데 얘보다 더 앞에 위치해야 되기에 addFilterBefore씀
+//        );
+//
+//        // tester authentication filter
+//        http.addFilterBefore(
+//                new TesterAuthenticationFilter(this.authenticationManager()),
+//                UsernamePasswordAuthenticationFilter.class
+//        );
 
         // basic authentication
         http.httpBasic().disable(); // basic authentication filter 비활성화
@@ -51,6 +57,22 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
         http.csrf();
         // remember-me
         http.rememberMe();
+
+        // stateless
+        http.sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS); // session을 사용하지 않고 stateless방식 사용
+        // jwt filter. authenticationManager는 WebSecurityConfigurerAdapter안에 있음
+        http.addFilterBefore(
+                new JwtAuthenticationFilter(authenticationManager()),
+                UsernamePasswordAuthenticationFilter.class
+        ).addFilterBefore(
+                new JwtAuthorizationFilter(userRepository),
+                BasicAuthenticationFilter.class
+        );
+        // 로그인 했을 때 JwtAuthenticationFilter가 동작함. 로그인에 성공하면 그것에 대한 쿠키를 내려줌
+        // 브라우저에서 받아서 요청을 하면 JwtAuthorizationFilter에 걸리게 됨
+
+
         // authorization
         http.authorizeRequests()
                 // /와 /home은 모두에게 허용
@@ -93,6 +115,7 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
     // Spring 입장에선 User Entity가 뭔지 모름. 그래서 코드로 어떻게 하면 유저를 가져올 수 있는지 작성
     // Bean으로 등록하게 되면 spring security가 내부적으로 사용하게 됨
     // Spring Security에서 유저를 찾을 때 씀
+    // 이거에 의해 Principal에서 유저 정보를 찾을 수 있음
     @Bean
     @Override
     public UserDetailsService userDetailsService() {
@@ -101,6 +124,7 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
             if (user == null) {
                 throw new UsernameNotFoundException(username);
             }
+//            user.setAuthority("ROLE_ASDF"); 컨트롤러에서 Principal principal로 찍어보기
             return user;
         };
     }

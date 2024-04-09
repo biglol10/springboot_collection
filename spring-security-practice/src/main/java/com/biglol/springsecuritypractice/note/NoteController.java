@@ -7,6 +7,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @Controller
@@ -22,7 +23,7 @@ public class NoteController {
      * @return 노트 view (note/index.html)
      */
     @GetMapping
-    public String getNote(Authentication authentication, Model model) {
+    public String getNote(Authentication authentication, Model model, Principal principal) {
         User user = (User) authentication.getPrincipal();
         List<Note> notes = noteService.findByUser(user);
         // note/index.html 에서 notes 사용가능

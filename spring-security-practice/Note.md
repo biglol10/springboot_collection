@@ -1,5 +1,7 @@
 *** Spring Security 내부구조 ***
 
+- 더 자세한 노트는 여기에서 확인: https://github.com/ysiksik/ysiksik.github.io/blob/b51003f6f85185e535f03c90ac53a4c7958810c0/_posts/study/fast-campus/spring-complete-edition-super-gap-package-online/2023-01-03-Part5-Spring-Security.md
+
 SecurityContextHolder -> SecurityContext -> Authentication -> Principal & GrantAuthority
 
 ![img.png](z_img/img.png)

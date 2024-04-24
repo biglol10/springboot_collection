@@ -10,7 +10,9 @@ import org.springframework.data.annotation.LastModifiedDate;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
 import java.util.Objects;
+import java.util.Set;
 
 @Getter
 @ToString
@@ -36,6 +38,11 @@ public class Article {
 
     @Setter // @Column 없어도 됨 (Transient 언급이 없는 이상)
     private String hashtag;
+
+    @ToString.Exclude // 순환참조문제 해결. 보통 이쪽에서 Exclude를 함. 이쪽에서 댓글 리스트를 다 뽑아 보는 거는 굳이 안봐도 됨
+    @OrderBy("id")
+    @OneToMany(mappedBy = "article", cascade = CascadeType.ALL) // article 테이블로부터 온 것이다. 모든 경우에 대해서 cascading constraint를 적용
+    private final Set<ArticleComment> articleComments = new LinkedHashSet<>();
 
     @CreatedDate
     @Column(nullable = false)

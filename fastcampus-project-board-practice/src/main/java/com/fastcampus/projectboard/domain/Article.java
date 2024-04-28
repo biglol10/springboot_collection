@@ -17,15 +17,15 @@ import java.util.Set;
 
 @Getter
 @ToString
-@Table(indexes = {
+@Table(indexes = { // 다만 이게 AuditingFields로 옮기는건 안됨
         @Index(columnList = "title"),
         @Index(columnList = "hashtag"),
         @Index(columnList = "createdAt"),
         @Index(columnList = "createdBy")
 })
-@EntityListeners(AuditingEntityListener.class)
+//@EntityListeners(AuditingEntityListener.class)
 @Entity
-public class Article {
+public class Article extends AuditingFields {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // MYSQL autoincrement에 맞게
     private Long id;
@@ -46,21 +46,22 @@ public class Article {
     @OneToMany(mappedBy = "article", cascade = CascadeType.ALL) // article 테이블로부터 온 것이다. 모든 경우에 대해서 cascading constraint를 적용
     private final Set<ArticleComment> articleComments = new LinkedHashSet<>();
 
-    @CreatedDate
-    @Column(nullable = false)
-    private LocalDateTime createdAt; // 자동으로 세팅하게 해주려면 JPA Auditing 사용
-
-    @CreatedBy
-    @Column(nullable = false, length = 100)
-    private String createdBy;
-
-    @LastModifiedDate
-    @Column(nullable = false)
-    private LocalDateTime modifiedAt;
-
-    @LastModifiedBy
-    @Column(nullable = false, length = 100)
-    private String modifiedBy;
+    // 아래 항목들 공통으로 옮김. 성향에 따라 공통 또는 개별로 작성
+//    @CreatedDate
+//    @Column(nullable = false)
+//    private LocalDateTime createdAt; // 자동으로 세팅하게 해주려면 JPA Auditing 사용
+//
+//    @CreatedBy
+//    @Column(nullable = false, length = 100)
+//    private String createdBy;
+//
+//    @LastModifiedDate
+//    @Column(nullable = false)
+//    private LocalDateTime modifiedAt;
+//
+//    @LastModifiedBy
+//    @Column(nullable = false, length = 100)
+//    private String modifiedBy;
 
     // 모든 JPA Entity들은 Hibernate 구현체를 사용하는 경우를 기준으로 기본 생성자를 가지고 있어야 함
     protected Article() {}

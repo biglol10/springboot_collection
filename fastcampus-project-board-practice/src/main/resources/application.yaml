@@ -26,6 +26,9 @@ spring:
       hibernate.default_batch_fetch_size: 100 # jpa에서 복잡한 쿼리, 연관관계가 매핑되어 있는 쿼리를 사용하게 될 때 한번에 bulk로 select해올 수 있게끔 만들어줌. n+1쿼리 문제 해결
   h2.console.enabled: true
   sql.init.mode: always # 테스트하는 기간만큼은 실제 DB를 띄우고 볼 때에도 테스트 데이터를 밀어 넣게끔 함. 서버 시작할 때마다 넣음
+  data.rest:
+    base-path: /api # rest api의 기본 경로를 /api로 설정
+    detection-strategy: annotated # @RepositoryRestResource를 사용해서 rest api를 만들 수 있음
 
 ---
 
@@ -38,3 +41,11 @@ spring:
 #    driver-class-name: org.h2.Driver
 #  sql.init.mode: always
 #  test.database.replace: none
+
+
+
+
+
+
+# Rest-data
+# The detection-strategy: annotated line is setting the strategy that Spring Data REST will use to detect repository resources. In this case, it's set to annotated, which means that only repositories annotated with @RepositoryRestResource will be exposed over REST

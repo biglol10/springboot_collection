@@ -1,3 +1,17 @@
+-- mysql.server start, mysql -u root -p
+
+-- show databases;
+--
+-- create user 'biglol'@'localhost' identified by '1234';
+--
+-- select `user` from `mysql`.`user`;
+--
+-- show grants for `biglol`@`localhost`;
+--
+-- grant all on `board`.* to 'biglol'@'localhost' with grant option;
+--
+-- flush privileges ;
+
 -- 123 게시글
 insert into article (title, content, hashtag, created_by, modified_by, created_at, modified_at) values
 ('Quisque ut erat.', 'Vestibulum quam sapien, varius ut, blandit non, interdum in, ante. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Duis faucibus accumsan odio. Curabitur convallis.

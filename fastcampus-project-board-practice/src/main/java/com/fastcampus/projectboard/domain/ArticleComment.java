@@ -19,9 +19,9 @@ import java.util.Objects;
         @Index(columnList = "createdAt"),
         @Index(columnList = "createdBy")
 })
-@EntityListeners(AuditingEntityListener.class)
+//@EntityListeners(AuditingEntityListener.class)
 @Entity
-public class ArticleComment {
+public class ArticleComment extends AuditingFields {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // MYSQL autoincrement에 맞게
     private Long id;
@@ -34,21 +34,21 @@ public class ArticleComment {
     @Column(nullable = false, length = 500)
     private String content;
 
-    @CreatedDate
-    @Column(nullable = false)
-    private LocalDateTime createdAt; // 자동으로 세팅하게 해주려면 JPA Auditing 사용
-
-    @CreatedBy
-    @Column(nullable = false, length = 100)
-    private String createdBy;
-
-    @LastModifiedDate
-    @Column(nullable = false)
-    private LocalDateTime modifiedAt;
-
-    @LastModifiedBy
-    @Column(nullable = false, length = 100)
-    private String modifiedBy;
+//    @CreatedDate
+//    @Column(nullable = false)
+//    private LocalDateTime createdAt; // 자동으로 세팅하게 해주려면 JPA Auditing 사용
+//
+//    @CreatedBy
+//    @Column(nullable = false, length = 100)
+//    private String createdBy;
+//
+//    @LastModifiedDate
+//    @Column(nullable = false)
+//    private LocalDateTime modifiedAt;
+//
+//    @LastModifiedBy
+//    @Column(nullable = false, length = 100)
+//    private String modifiedBy;
 
 //    // @NoArgsConstructor로 대체
 //    protected ArticleComment() {}

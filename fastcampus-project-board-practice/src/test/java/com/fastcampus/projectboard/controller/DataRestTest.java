@@ -1,5 +1,6 @@
 package com.fastcampus.projectboard.controller;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 // 모든 유닛 테스트 메소드들은 롤백 상태로 묶이게 됨
 
 //@WebMvcTest // WebMvcTest는 컨트롤러 테스트를 위한 어노테이션. slice test임. 컨트롤러 외의 빈을 로드하지 않음. 컨트롤러와 연관된 최소한의 내용만 로드. data rest의 autoconfiguration이 안됨
+@Disabled("Spring Data REST 통합테스트는 불필요하므로 제외시킴")
 @DisplayName("DataRest 테스트")
 @Transactional
 @AutoConfigureMockMvc

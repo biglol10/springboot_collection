@@ -13,7 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("View 컨트롤러 - 게시글")
-@WebMvcTest
+@WebMvcTest(ArticleController.class) // ArticleController를 테스트하기 위한 설정
 class ArticleControllerTest {
     private final MockMvc mvc;
 

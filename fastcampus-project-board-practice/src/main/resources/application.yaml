@@ -29,6 +29,8 @@ spring:
   data.rest:
     base-path: /api # rest api의 기본 경로를 /api로 설정
     detection-strategy: annotated # @RepositoryRestResource를 사용해서 rest api를 만들 수 있음
+  thymeleaf3:
+    decoupled-logic: true
 
 ---
 

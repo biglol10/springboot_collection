@@ -24,6 +24,7 @@ spring:
     properties: # spring은 hibernate의 모든 기능을 보장하게끔 만들어져 있는건 아님. hibernate에서만 전용으로 사용할 수 있는 복잡한 property를 쓰고 싶은 경우 properties 지정
       hibernate.format_sql: true # 한줄로 나오는 쿼리문을 포멧팅 해줌
       hibernate.default_batch_fetch_size: 100 # jpa에서 복잡한 쿼리, 연관관계가 매핑되어 있는 쿼리를 사용하게 될 때 한번에 bulk로 select해올 수 있게끔 만들어줌. n+1쿼리 문제 해결
+    open-in-view: false # 오픈인뷰는 jpa에서 lazy loading을 사용할 때, 영속성 컨텍스트를 열어놓고 사용할 수 있게끔 해줌. 그러나 이걸 사용하면 성능이 떨어지게 됨. 그래서 false로 설정. 서비스가 나간 뒤에는 트랜잭션이 종료하고 레이지로딩을 하거나 다른 이슈가 있어도 아무 문제가 없게끔
   h2.console.enabled: true
   sql.init.mode: always # 테스트하는 기간만큼은 실제 DB를 띄우고 볼 때에도 테스트 데이터를 밀어 넣게끔 함. 서버 시작할 때마다 넣음
   data.rest:

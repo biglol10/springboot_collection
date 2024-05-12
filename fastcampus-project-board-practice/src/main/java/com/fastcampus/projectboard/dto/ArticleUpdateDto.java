@@ -1,5 +1,6 @@
 package com.fastcampus.projectboard.dto;
 
+@Deprecated
 public record ArticleUpdateDto(
         String title,
         String content,

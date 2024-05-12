@@ -16,7 +16,7 @@ import java.util.Objects;
 import java.util.Set;
 
 @Getter
-@ToString
+@ToString(callSuper = true) // 부모 클래스의 toString을 호출하고자 할 때 (UserAccount및 AuditingFields의 toString을 호출하고자 할 때)
 @Table(indexes = { // 다만 이게 AuditingFields로 옮기는건 안됨
         @Index(columnList = "title"),
         @Index(columnList = "hashtag"),
@@ -30,6 +30,8 @@ public class Article extends AuditingFields {
     @GeneratedValue(strategy = GenerationType.IDENTITY) // MYSQL autoincrement에 맞게
     private Long id;
 
+    @Setter @ManyToOne(optional = false) private UserAccount userAccount;
+
     @Setter
     @Column(nullable = false)
     private String title;
@@ -42,7 +44,7 @@ public class Article extends AuditingFields {
     private String hashtag;
 
     @ToString.Exclude // 순환참조문제 해결. 보통 이쪽에서 Exclude를 함. 이쪽에서 댓글 리스트를 다 뽑아 보는 거는 굳이 안봐도 됨
-    @OrderBy("id")
+    @OrderBy("createdAt DESC")
     @OneToMany(mappedBy = "article", cascade = CascadeType.ALL) // article 테이블로부터 온 것이다. 모든 경우에 대해서 cascading constraint를 적용
     private final Set<ArticleComment> articleComments = new LinkedHashSet<>();
 
@@ -67,15 +69,16 @@ public class Article extends AuditingFields {
     protected Article() {}
 
     // private으로 막고 factory method를 통해서 제공할 수 있게끔 해봄
-    private Article(String title, String content, String hashtag) {
+    private Article(UserAccount userAccount, String title, String content, String hashtag) {
+        this.userAccount = userAccount;
         this.title = title;
         this.content = content;
         this.hashtag = hashtag;
     }
 
     // 도메인 article을 생성하고자 할 때 어떤 값을 필요로 한다는걸 이것으로 가이드
-    public static Article of(String title, String content, String hashtag) {
-        return new Article(title, content, hashtag);
+    public static Article of(UserAccount userAccount, String title, String content, String hashtag) {
+        return new Article(userAccount, title, content, hashtag);
     }
 
     // 리스트에 넣거나 리스트에 있는 중복 요소를 제거하거나 정렬 등의 케이스를 위해 동일성/동등성 비교를 하기 위해 equals and hashcode를 구현해야 함

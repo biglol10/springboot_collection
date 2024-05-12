@@ -5,6 +5,8 @@ import com.fastcampus.projectboard.domain.QArticle;
 import com.querydsl.core.types.dsl.DateTimeExpression;
 import com.querydsl.core.types.dsl.SimpleExpression;
 import com.querydsl.core.types.dsl.StringExpression;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
@@ -17,6 +19,11 @@ public interface ArticleRepository extends
         QuerydslPredicateExecutor<Article>, // QuerydslPredicateExecutors는 엔티티 안에 있는 모든 필드에 대한 동적 쿼리를 생성할 수 있게 해줌
         QuerydslBinderCustomizer<QArticle> // querydslPredicateExecutor를 사용할 때, querydslBinderCustomizer를 사용하면 querydsl을 커스터마이징할 수 있음. Exact match 대신 contains, startsWith, endsWith 등을 사용할 수 있음
 {
+    Page<Article> findByTitleContaining(String title, Pageable pageable);
+    Page<Article> findByContentContaining(String content, Pageable pageable);
+    Page<Article> findByUserAccount_UserIdContaining(String userId, Pageable pageable);
+    Page<Article> findByUserAccount_NicknameContaining(String nickname, Pageable pageable);
+    Page<Article> findByHashtag(String hashtag, Pageable pageable);
     @Override
     default void customize(QuerydslBindings bindings, QArticle root) { // 인터페이스라 구현할 수 없지만 자바8부터 default 메소드를 사용할 수 있음
         bindings.excludeUnlistedProperties(true); // listing 하지 않는 프로퍼티를 제외시킴

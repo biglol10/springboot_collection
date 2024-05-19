@@ -1,0 +1,32 @@
+# this will extend all the properties from the application.yml file and override what is needed
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/book_social_network
+    username: username
+    password: password
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update # update the schema when the application starts
+    show-sql: true # show the SQL queries in the console
+    properties:
+      hibernate:
+        format_sql: true # format the SQL queries
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+  mail:
+    host: localhost # maildev container. In production, change host, port, username, and password
+    port: 1025
+    username: ali
+    password: ali
+    properties:
+      mail:
+        smtp:
+          trust: "*" # not recommended for production
+        auth: true
+        starttls:
+          enabled: true
+        connectiontimeout: 5000
+        timeout: 3000 # 3 seconds
+        writetimeout: 5000

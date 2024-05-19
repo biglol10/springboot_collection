@@ -1,0 +1,16 @@
+# common configuration
+# https://github.dev/ali-bouali/book-social-network
+# https://www.youtube.com/watch?v=WuPa_XoWlJU&t=2717s
+
+spring:
+  profiles:
+    active: dev # Set the active profile to dev
+  servlet:
+    multipart:
+      max-file-size: 50MB
+springdoc:
+  default-produces-media-type: application/json
+
+server:
+  servlet:
+    context-path: /api/v1/

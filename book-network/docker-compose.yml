@@ -1,0 +1,30 @@
+services:
+  postgres:
+    container_name: postgres-sql-bsn
+    image: postgres
+    environment:
+      POSTGRES_USER: username
+      POSTGRES_PASSWORD: password
+      PGDATA: /var/lib/postgresql/data # This is the path where the data will be stored
+      POSTGRES_DB: book_social_network
+    volumes:
+      - postgres:/data/postgres
+    ports:
+      - 5432:5432 # public port:container port
+    networks: # This is the network that the container will be connected to. Want all containers to be connected to the same network
+      - spring-demo
+    restart: unless-stopped
+  mail-dev:
+    container_name: mail-dev-bsn
+    image: maildev/maildev
+    ports:
+      - 1080:1080 # by docs, this is the port that maildev uses
+      - 1025:1025 # used by our spring application
+
+networks:
+  spring-demo:
+    driver: bridge
+
+volumes:
+  postgres:
+    driver: local

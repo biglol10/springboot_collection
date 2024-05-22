@@ -19,7 +19,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @RequiredArgsConstructor
 @EnableMethodSecurity(securedEnabled = true) // since we spoke about role based authentication, we need to enable method security
 public class SecurityConfig {
-    private JwtFilter jwtAuthFilter;
+    private final JwtFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
 
     // When spring starts scanning the classes spring will find SecurityConfig annotated with @Configuration
@@ -48,6 +48,6 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // since we are using JWT, we don't need to create a session
                 .authenticationProvider(authenticationProvider) // need to provide authenticationProvider object or bean
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class); // before UsernamePasswordAuthenticationFilter, we need to add jwtAuthFilter that checks the token
-        return null;
+        return http.build();
     }
 }

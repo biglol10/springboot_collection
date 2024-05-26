@@ -1,5 +1,6 @@
 package com.alibou.booknetwork.auth;
 
+import com.alibou.booknetwork.email.EmailService;
 import com.alibou.booknetwork.role.RoleRepository;
 import com.alibou.booknetwork.user.Token;
 import com.alibou.booknetwork.user.TokenRepository;
@@ -21,6 +22,7 @@ public class AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final TokenRepository tokenRepository;
+    private final EmailService emailService;
 
     public void register(RegisterationRequest registerationRequest) {
         var userRole = roleRepository.findByName("USER")

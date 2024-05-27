@@ -110,7 +110,7 @@ public class AuthenticationService {
                 .token(jwtToken).build();
     }
 
-    @Transactional
+//    @Transactional // if we send validation email and save new token in the same transaction and throw error, we will get an error because the token is not saved in the database
     public void activateAccount(String token) throws MessagingException {
         Token savedToken = tokenRepository.findByToken(token)
                 .orElseThrow(() -> new RuntimeException("Token not found")); // TODO exception has to be defined

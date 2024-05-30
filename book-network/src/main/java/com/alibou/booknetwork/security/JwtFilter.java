@@ -66,6 +66,16 @@ public class JwtFilter extends OncePerRequestFilter { // to make it understand t
                         userDetails.getAuthorities()
                 );
 
+                // If I used CustomUserDetails like you provided above, when I run SecurityContextHolder.getContext().getAuthentication() or try to get principal, will I get object of class CustomUserDetails?
+                // Yes, you will get an object of the CustomUserDetails class. The loadUserByUsername method in the UserDetailsService interface should return an object that implements the UserDetails interface. In this case, the CustomUserDetails class implements the UserDetails interface, so the object returned by the loadUserByUsername method will be an instance of the CustomUserDetails class.
+                // CustomUserDetails customUserDetails = // load or create your user details
+                //UsernamePasswordAuthenticationToken authentication =
+                //        new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities());
+                //SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                // Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                //CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
+
                 // build some details from request. extract some info to provide to token
                 authToken.setDetails(
                         new WebAuthenticationDetailsSource().buildDetails(request)

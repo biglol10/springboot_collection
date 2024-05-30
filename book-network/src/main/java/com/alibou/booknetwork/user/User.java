@@ -1,5 +1,7 @@
 package com.alibou.booknetwork.user;
 
+import com.alibou.booknetwork.book.Book;
+import com.alibou.booknetwork.history.BookTransactionHistory;
 import com.alibou.booknetwork.role.Role;
 import jakarta.persistence.*;
 import lombok.*;
@@ -44,6 +46,12 @@ public class User implements UserDetails, Principal {
 
     @ManyToMany(fetch = FetchType.EAGER) // EAGER means that it will load all the roles when the user is loaded
     private List<Role> roles; // if you want to use roles
+
+    @OneToMany(mappedBy = "owner") // mappedBy is the field name in the Book class. User can have many books. mappedby is necessary when using one to many
+    private List<Book> books;
+
+    @OneToMany(mappedBy = "user")
+    private List<BookTransactionHistory> histories;
 
     @CreatedDate // to make automatically audited
     @Column(nullable = false, updatable = false)

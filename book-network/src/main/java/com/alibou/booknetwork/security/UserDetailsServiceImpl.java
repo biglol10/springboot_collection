@@ -21,6 +21,16 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 }
 
+// loadUserByUsername 메서드가 UserDetails가 아닌 다른 클래스를 반환하도록 변경하면, getPrincipal() 메서드를 호출했을 때 해당 클래스의 인스턴스가 반환됩니다.
+// 하지만, 이렇게 변경하려면 Authentication 객체를 생성할 때 해당 클래스의 인스턴스를 주체(principal)로 설정해야 합니다. 그리고 이 클래스는 Spring Security가 인증과 권한 부여를 수행하는 데 필요한 정보를 제공해야 합니다.
+// 예를 들어, CustomUserDetails라는 클래스를 사용하려면 다음과 같이 할 수 있습니다:
+// CustomUserDetails customUserDetails = // load or create your user details
+//UsernamePasswordAuthenticationToken authentication =
+//        new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities());
+//SecurityContextHolder.getContext().setAuthentication(authentication);
+// Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
+
 //`AuthenticationProvider`, 특히 `DaoAuthenticationProvider`가 데이터베이스에서 사용자 정보를 로드하고 비밀번호를 검증할 때 사용하는 칼럼은 주로 다음과 같은 방식으로 결정됩니다:
 //
 //        1. **사용자 구현체의 `UserDetailsService`**:

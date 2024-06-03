@@ -1,6 +1,8 @@
 package com.alibou.booknetwork.book;
 
 import com.alibou.booknetwork.common.PageResponse;
+import com.alibou.booknetwork.history.BookTransactionHistory;
+import com.alibou.booknetwork.history.BookTransactionHistoryRepository;
 import com.alibou.booknetwork.user.User;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -13,11 +15,14 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import static com.alibou.booknetwork.book.BookSpecification.withOwnerId;
+
 @Service
 @RequiredArgsConstructor
 public class BookService {
     private final BookRepository bookRepository;
     private final BookMapper bookMapper;
+    private final BookTransactionHistoryRepository transactionHistoryRepository;
 
     public Integer save(BookRequest request, Authentication connectedUser) {
         User user = (User) connectedUser.getPrincipal(); // getPrincipal gets the current user and since User implements UserDetails and Principal, we can be sure that getPrincipal can be casted to User
@@ -53,6 +58,44 @@ public class BookService {
                 books.isFirst(),
                 books.isLast()
         );
-        )
+    }
+
+
+    public PageResponse<BookResponse> findAllBooksByOwner(int page, int size, Authentication connectedUser) {
+        User user = (User) connectedUser.getPrincipal();
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+
+        Page<Book> books = bookRepository.findAll(withOwnerId(user.getId()), pageable); // to support specification, we need to add JpaSpecificationExecutor<Book> to the BookRepository interface
+
+        List<BookResponse> booksResponse = books.stream()
+                .map(bookMapper::toBookResponse)
+                .toList();
+        return new PageResponse<>(
+                booksResponse,
+                books.getNumber(),
+                books.getSize(),
+                books.getTotalElements(),
+                books.getTotalPages(),
+                books.isFirst(),
+                books.isLast()
+        );
+    }
+
+    public PageResponse<BorrowedBookResponse> findAllBorrowedBooks(int page, int size, Authentication connectedUser) {
+        User user = ((User) connectedUser.getPrincipal());
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
+        Page<BookTransactionHistory> allBorrowedBooks = transactionHistoryRepository.findAllBorrowedBooks(pageable, user.getId());
+        List<BorrowedBookResponse> booksResponse = allBorrowedBooks.stream()
+                .map(bookMapper::toBorrowedBookResponse)
+                .toList();
+        return new PageResponse<>(
+                booksResponse,
+                allBorrowedBooks.getNumber(),
+                allBorrowedBooks.getSize(),
+                allBorrowedBooks.getTotalElements(),
+                allBorrowedBooks.getTotalPages(),
+                allBorrowedBooks.isFirst(),
+                allBorrowedBooks.isLast()
+        );
     }
 }

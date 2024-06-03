@@ -2,6 +2,7 @@ package com.alibou.booknetwork.book;
 
 //import com.alibou.booknetwork.book.file.FileUtils;
 //import com.alibou.booknetwork.book.history.BookTransactionHistory;
+import com.alibou.booknetwork.history.BookTransactionHistory;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -32,16 +33,16 @@ public class BookMapper {
 //                .cover(FileUtils.readFileFromLocation(book.getBookCover()))
                 .build();
     }
-//
-//    public BorrowedBookResponse toBorrowedBookResponse(BookTransactionHistory history) {
-//        return BorrowedBookResponse.builder()
-//                .id(history.getBook().getId())
-//                .title(history.getBook().getTitle())
-//                .authorName(history.getBook().getAuthorName())
-//                .isbn(history.getBook().getIsbn())
-//                .rate(history.getBook().getRate())
-//                .returned(history.isReturned())
-//                .returnApproved(history.isReturnApproved())
-//                .build();
-//    }
+
+    public BorrowedBookResponse toBorrowedBookResponse(BookTransactionHistory history) {
+        return BorrowedBookResponse.builder()
+                .id(history.getBook().getId())
+                .title(history.getBook().getTitle())
+                .authorName(history.getBook().getAuthorName())
+                .isbn(history.getBook().getIsbn())
+                .rate(history.getBook().getRate())
+                .returned(history.isReturned())
+                .returnApproved(history.isReturnApproved())
+                .build();
+    }
 }

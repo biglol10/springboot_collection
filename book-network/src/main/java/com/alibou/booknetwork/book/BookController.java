@@ -72,47 +72,47 @@ public class BookController {
     ) {
         return ResponseEntity.ok(service.updateShareableStatus(bookId, connectedUser));
     }
-//
-//    @PatchMapping("/archived/{book-id}")
-//    public ResponseEntity<Integer> updateArchivedStatus(
-//            @PathVariable("book-id") Integer bookId,
-//            Authentication connectedUser
-//    ) {
-//        return ResponseEntity.ok(service.updateArchivedStatus(bookId, connectedUser));
-//    }
-//
-//    @PostMapping("borrow/{book-id}")
-//    public ResponseEntity<Integer> borrowBook(
-//            @PathVariable("book-id") Integer bookId,
-//            Authentication connectedUser
-//    ) {
-//        return ResponseEntity.ok(service.borrowBook(bookId, connectedUser));
-//    }
-//
-//    @PatchMapping("borrow/return/{book-id}")
-//    public ResponseEntity<Integer> returnBorrowBook(
-//            @PathVariable("book-id") Integer bookId,
-//            Authentication connectedUser
-//    ) {
-//        return ResponseEntity.ok(service.returnBorrowedBook(bookId, connectedUser));
-//    }
-//
-//    @PatchMapping("borrow/return/approve/{book-id}")
-//    public ResponseEntity<Integer> approveReturnBorrowBook(
-//            @PathVariable("book-id") Integer bookId,
-//            Authentication connectedUser
-//    ) {
-//        return ResponseEntity.ok(service.approveReturnBorrowedBook(bookId, connectedUser));
-//    }
-//
-//    @PostMapping(value = "/cover/{book-id}", consumes = "multipart/form-data")
-//    public ResponseEntity<?> uploadBookCoverPicture(
-//            @PathVariable("book-id") Integer bookId,
-//            @Parameter()
-//            @RequestPart("file") MultipartFile file,
-//            Authentication connectedUser
-//    ) {
-//        service.uploadBookCoverPicture(file, connectedUser, bookId);
-//        return ResponseEntity.accepted().build();
-//    }
+
+    @PatchMapping("/archived/{book-id}")
+    public ResponseEntity<Integer> updateArchivedStatus(
+            @PathVariable("book-id") Integer bookId,
+            Authentication connectedUser
+    ) {
+        return ResponseEntity.ok(service.updateArchivedStatus(bookId, connectedUser));
+    }
+
+    @PostMapping("borrow/{book-id}")
+    public ResponseEntity<Integer> borrowBook(
+            @PathVariable("book-id") Integer bookId,
+            Authentication connectedUser
+    ) {
+        return ResponseEntity.ok(service.borrowBook(bookId, connectedUser));
+    }
+
+    @PatchMapping("borrow/return/{book-id}")
+    public ResponseEntity<Integer> returnBorrowBook(
+            @PathVariable("book-id") Integer bookId,
+            Authentication connectedUser
+    ) {
+        return ResponseEntity.ok(service.returnBorrowedBook(bookId, connectedUser));
+    }
+
+    @PatchMapping("borrow/return/approve/{book-id}")
+    public ResponseEntity<Integer> approveReturnBorrowBook(
+            @PathVariable("book-id") Integer bookId,
+            Authentication connectedUser
+    ) {
+        return ResponseEntity.ok(service.approveReturnBorrowedBook(bookId, connectedUser));
+    }
+
+    @PostMapping(value = "/cover/{book-id}", consumes = "multipart/form-data")
+    public ResponseEntity<?> uploadBookCoverPicture(
+            @PathVariable("book-id") Integer bookId,
+            @Parameter()
+            @RequestPart("file") MultipartFile file,
+            Authentication connectedUser
+    ) {
+        service.uploadBookCoverPicture(bookId, file, connectedUser);
+        return ResponseEntity.accepted().build();
+    }
 }

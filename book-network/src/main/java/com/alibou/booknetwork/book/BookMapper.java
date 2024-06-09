@@ -1,7 +1,6 @@
 package com.alibou.booknetwork.book;
 
-//import com.alibou.booknetwork.book.file.FileUtils;
-//import com.alibou.booknetwork.book.history.BookTransactionHistory;
+import com.alibou.booknetwork.file.FileUtils;
 import com.alibou.booknetwork.history.BookTransactionHistory;
 import org.springframework.stereotype.Service;
 
@@ -30,7 +29,7 @@ public class BookMapper {
                 .archived(book.isArchived())
                 .shareable(book.isShareable())
                 .owner(book.getOwner().fullName())
-//                .cover(FileUtils.readFileFromLocation(book.getBookCover()))
+                .cover(FileUtils.readFileFromLocation(book.getBookCover()))
                 .build();
     }
 

@@ -3,6 +3,7 @@ package com.alibou.booknetwork.handler;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Set;
 
@@ -14,6 +15,8 @@ import java.util.Set;
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_EMPTY) // to exclude null fields from the response
 public class ExceptionResponse {
+    private LocalDateTime timestamp;
+    private String path;
     private Integer businessErrorCode;
     private String businessErrorDescription;
     private String error;

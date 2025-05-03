@@ -7,10 +7,10 @@ spring:
     active: dev # Set the active profile to dev
   servlet:
     multipart:
-      max-file-size: 50MB
+      max-file-size: 50MB # 파일 업로드 최대 크기 설정
 springdoc:
-  default-produces-media-type: application/json
+  default-produces-media-type: application/json # API 문서화 시 기본 응답 미디어 타입 설정
 
 server:
   servlet:
-    context-path: /api/v1/
+    context-path: /api/v1/ # API의 기본 경로 접두사 설정

@@ -2,10 +2,10 @@
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/book_social_network
-    username: username
-    password: password
-    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/book_social_network # PostgreSQL 데이터베이스 연결 URL
+    username: username # 데이터베이스 접속 사용자명
+    password: password # 데이터베이스 접속 비밀번호
+    driver-class-name: org.postgresql.Driver # PostgreSQL JDBC 드라이버 클래스
   jpa:
     hibernate:
       ddl-auto: update # update the schema when the application starts
@@ -13,34 +13,34 @@ spring:
     properties:
       hibernate:
         format_sql: true # format the SQL queries
-    database: postgresql
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    database: postgresql # 사용할 데이터베이스 종류 지정
+    database-platform: org.hibernate.dialect.PostgreSQLDialect # 하이버네이트에서 사용할 데이터베이스 방언
   mail:
     host: localhost # maildev container. In production, change host, port, username, and password
-    port: 1025
-    username: ali
-    password: ali
+    port: 1025 # SMTP 서버 포트
+    username: ali # SMTP 인증 사용자명
+    password: ali # SMTP 인증 비밀번호
     properties:
       mail:
         smtp:
           trust: "*" # not recommended for production
-        auth: true
+        auth: true # SMTP 인증 활성화
         starttls:
-          enabled: true
-        connectiontimeout: 5000
+          enabled: true # TLS 보안 연결 활성화
+        connectiontimeout: 5000 # 연결 타임아웃 (밀리초)
         timeout: 3000 # 3 seconds
-        writetimeout: 5000
+        writetimeout: 5000 # 쓰기 타임아웃 (밀리초)
 
 application:
   security:
     jwt:
-      secret-key: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+      secret-key: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970 # JWT 토큰 서명에 사용되는 비밀 키
       expiration: 86400000 # 1 day
   mailing:
     frontend:
-      activation-url: http://localhost:4200/activate-account
+      activation-url: http://localhost:4200/activate-account # 계정 활성화를 위한 프론트엔드 URL
   file:
     upload:
-      photos-output-path: ./uploads
+      photos-output-path: ./uploads # 업로드된 사진 파일이 저장될 경로
 server:
-  port: 8080
+  port: 8080 # 애플리케이션이 실행될 HTTP 포트

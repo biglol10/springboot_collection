@@ -100,6 +100,18 @@ public class WebConfig implements WebMvcConfigurer {
      * @return CorsFilter 빈
      */
     @Bean
+    /**
+     * 전역 CORS 필터 설정
+     * 
+     * 이 필터는 Spring Security와 함께 사용되어 모든 HTTP 요청에 대해 CORS 정책을 적용합니다.
+     * SecurityFilterChain에 등록되어 인증/인가 처리 전에 CORS 헤더를 추가하여
+     * 브라우저의 Same-Origin Policy 제한을 우회할 수 있게 합니다.
+     * 
+     * addCorsMappings 메소드와 함께 사용되지만, Spring Security 컨텍스트에서는
+     * 이 빈이 필요하므로 별도로 정의합니다.
+     * 
+     * @return 구성된 CorsFilter 인스턴스
+     */
     public CorsFilter corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();

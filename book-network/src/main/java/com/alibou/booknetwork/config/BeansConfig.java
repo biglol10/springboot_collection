@@ -21,6 +21,27 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  */
 @Configuration // 이 클래스가 Spring 설정 클래스임을 나타냅니다
 @RequiredArgsConstructor // final 필드에 대한 생성자를 자동으로 생성합니다
+/**
+ * 스프링에서 의존성 주입은 다음과 같이 작동합니다:
+스프링은 애플리케이션이 시작될 때 빈(Bean)이라 불리는 객체들을 생성하고 관리합니다. 빈은 주로 @Component, @Service, @Repository, @Controller, @Configuration 등의 어노테이션이 붙은 클래스들입니다.
+하나의 빈이 다른 빈에 의존할 때(예: SecurityConfig가 JwtFilter와 AuthenticationProvider에 의존), 스프링은 그 의존성을 "주입"해 줍니다.
+의존성 주입 방법에는 여러 가지가 있는데, 생성자 주입(Constructor Injection)이 가장 권장되는 방식입니다.
+@RequiredArgsConstructor가 생성하는 생성자는 스프링이 의존성 주입에 사용합니다. 예를 들어:
+
+@Configuration
+@RequiredArgsConstructor
+public class SecurityConfig {
+    private final JwtFilter jwtFilter;
+    private final AuthenticationProvider authenticationProvider;
+    
+    // Lombok이 자동으로 생성자를 만들어줌
+}
+    스프링은 SecurityConfig 객체를 생성할 때:
+JwtFilter 타입의 빈을 찾습니다.
+AuthenticationProvider 타입의 빈을 찾습니다.
+이 두 빈을 파라미터로 사용하여 SecurityConfig의 생성자를 호출합니다.
+이렇게 SecurityConfig는 필요한 의존성들을 스프링으로부터 자동으로 주입받게 됩니다. 이 과정에서 @RequiredArgsConstructor가 생성해준 생성자가 사용되는 것입니다.
+ */
 public class BeansConfig {
     // 기본 UserDetailsService 구현 대신 커스텀 구현체(UserDetailsServiceImpl)를 사용합니다
     // 이를 통해 사용자 정보를 데이터베이스에서 로드하는 방식을 커스터마이징할 수 있습니다

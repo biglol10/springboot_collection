@@ -49,10 +49,10 @@ public class WebConfig implements WebMvcConfigurer {
      * 
      * @param registry 인터셉터 레지스트리
      */
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(roleCheckInterceptor).addPathPatterns("/admin/**");
-    }
+    // @Override
+    // public void addInterceptors(InterceptorRegistry registry) {
+    //     registry.addInterceptor(roleCheckInterceptor).addPathPatterns("/admin/**");
+    // }
 
     /**
      * CORS 설정

@@ -383,6 +383,32 @@ public class BookService {
         book.setBookCover(bookCover);
         bookRepository.save(book);
     }
+
+    /**
+     * 조건들로 도서 검색 기능
+     * 
+     * @param searchRequest 검색 조건
+     * @param page 페이지 번호
+     * @param size 페이지당 항목 수
+     * @return 페이징된 도서 응답 객체
+     */
+    public PageResponse<BookResponse> searchBooks(BookSearchRequest searchRequest, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
+
+        Page<Book> books = bookRepository.findAll(BookSpecification.buildSearchSpecification(searchRequest), pageable);
+        List<BookResponse> bookResponses = books.stream()
+                .map(bookMapper::toBookResponse)
+                .toList();
+        return new PageResponse<>(
+                bookResponses,
+                books.getNumber(),
+                books.getSize(),
+                books.getTotalElements(),
+                books.getTotalPages(),
+                books.isFirst(),
+                books.isLast()
+        );
+    }
 }
 
 /**

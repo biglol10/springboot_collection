@@ -129,7 +129,8 @@ public class SecurityConfig {
                                             "/configuration/security",
                                             "/swagger-ui/**",
                                             "/webjars/**",
-                                            "/swagger-ui.html"
+                                            "/swagger-ui.html",
+                                            "/books/search" // 테스트용
                             ).permitAll() // 위의 경로들은 인증 없이 모든 사용자에게 허용됩니다.
                                     .anyRequest().authenticated() // 그 외 모든 요청은 인증이 필요합니다.
                         )

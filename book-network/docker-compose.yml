@@ -20,6 +20,15 @@ services:
     ports:
       - 1080:1080 # by docs, this is the port that maildev uses
       - 1025:1025 # used by our spring application
+  redis:
+    # platform: linux/amd64 # 맥북인 경우에 activate
+    image: redis:7.2.4
+    command: redis-server --port 6379
+    restart: always
+    ports:
+      - 6379:6379
+    networks:
+      - spring-demo
 
 networks:
   spring-demo:

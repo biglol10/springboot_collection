@@ -5,6 +5,9 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -18,11 +21,13 @@ public class BookController {
     private final BookService service;
 
     @PostMapping
+    @CacheEvict(value = "books", allEntries = true)
     public ResponseEntity<Integer> saveBook(@Valid @RequestBody BookRequest request, Authentication connectedUser) {
         return ResponseEntity.ok(service.save(request, connectedUser));
     }
 
     @GetMapping("/{book-id}")
+    @Cacheable(value = "books", key = "#bookId")
     public ResponseEntity<BookResponse> findBookById(
             @PathVariable("book-id") Integer bookId
     ) {
@@ -30,6 +35,7 @@ public class BookController {
     }
 
     @GetMapping
+    @Cacheable(value = "books", key = "#page + '-' + #size")
     public ResponseEntity<PageResponse<BookResponse>> findAllBooks(
             @RequestParam(name = "page", defaultValue = "0", required = false) int page,
             @RequestParam(name = "size", defaultValue = "10", required = false) int size,
@@ -114,5 +120,14 @@ public class BookController {
     ) {
         service.uploadBookCoverPicture(bookId, file, connectedUser);
         return ResponseEntity.accepted().build();
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<PageResponse<BookResponse>> searchBooks(
+        @ModelAttribute BookSearchRequest searchRequest,
+        @RequestParam(name = "page", defaultValue = "0", required = false) int page,
+        @RequestParam(name = "size", defaultValue = "10", required = false) int size
+    ) {
+        return ResponseEntity.ok(service.searchBooks(searchRequest, page, size));
     }
 }

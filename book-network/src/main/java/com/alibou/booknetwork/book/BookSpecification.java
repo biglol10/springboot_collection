@@ -174,19 +174,37 @@ public class BookSpecification {
     }
 
     /**
+     * bookCover 검색 명세를 반환합니다.
+     * @param bookCover
+     * @return bookCover 텍스트가 포함된 도서 검색
+     */
+    public static Specification<Book> bookCoverContains(String bookCover) {
+        return (root, query, criteriaBuilder) -> {
+            if (!StringUtils.hasText(bookCover)) {
+                return criteriaBuilder.conjunction();
+            }
+            return criteriaBuilder.like(
+                criteriaBuilder.lower(root.get("bookCover")),
+                "%" + bookCover.toLowerCase() + "%"
+            );
+        };
+    }
+
+
+    /**
      * 여러 검색 조건을 조합한 복합 명세를 생성합니다.
      * 
      * @param searchRequest 검색 요청 객체
      * @return 여러 조건을 조합한 복합 명세
      */
     public static Specification<Book> buildSearchSpecification(BookSearchRequest searchRequest) {
-        return Specification.where(withOwnerId(searchRequest.getOwnerId()))
-                .and(titleContains(searchRequest.getTitle()))
+        return Specification.where(titleContains(searchRequest.getTitle()))
                 .and(authorContains(searchRequest.getAuthorName()))
                 .and(withIsbn(searchRequest.getIsbn()))
-                .and(isShareable(searchRequest.getShareable()))
-                .and(isArchived(searchRequest.getArchived()))
-                .and(synopsisContains(searchRequest.getSynopsis()));
+                .and(isShareable(searchRequest.isShareable()))
+                .and(isArchived(searchRequest.isArchived()))
+                .and(synopsisContains(searchRequest.getSynopsis()))
+                .and(bookCoverContains(searchRequest.getBookCover()));
     }
     
     /**
@@ -304,69 +322,3 @@ public class BookSpecification {
  * 여러 검색 조건을 한번에 전달하기 위한 객체입니다.
  * BookSpecification.buildSearchSpecification 메소드에서 사용됩니다.
  */
-class BookSearchRequest {
-    private Integer ownerId;
-    private String title;
-    private String authorName;
-    private String isbn;
-    private Boolean shareable;
-    private Boolean archived;
-    private String synopsis;
-    
-    // Getters and Setters
-    public Integer getOwnerId() {
-        return ownerId;
-    }
-    
-    public void setOwnerId(Integer ownerId) {
-        this.ownerId = ownerId;
-    }
-    
-    public String getTitle() {
-        return title;
-    }
-    
-    public void setTitle(String title) {
-        this.title = title;
-    }
-    
-    public String getAuthorName() {
-        return authorName;
-    }
-    
-    public void setAuthorName(String authorName) {
-        this.authorName = authorName;
-    }
-    
-    public String getIsbn() {
-        return isbn;
-    }
-    
-    public void setIsbn(String isbn) {
-        this.isbn = isbn;
-    }
-    
-    public Boolean getShareable() {
-        return shareable;
-    }
-    
-    public void setShareable(Boolean shareable) {
-        this.shareable = shareable;
-    }
-    
-    public Boolean getArchived() {
-        return archived;
-    }
-    
-    public void setArchived(Boolean archived) {
-        this.archived = archived;
-    }
-    
-    public String getSynopsis() {
-        return synopsis;
-    }
-    
-    public void setSynopsis(String synopsis) {
-        this.synopsis = synopsis;
-    }
-}

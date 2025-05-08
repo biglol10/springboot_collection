@@ -20,7 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  * 이러한 빈들은 애플리케이션 전체에서 의존성 주입을 통해 사용됩니다.
  */
 @Configuration // 이 클래스가 Spring 설정 클래스임을 나타냅니다
-@RequiredArgsConstructor // final 필드에 대한 생성자를 자동으로 생성합니다
+@RequiredArgsConstructor // final 필드에 대한 생성자를 자동으로 생성합니다  // In order to have my constructor and automatically inject my beans
 /**
  * 스프링에서 의존성 주입은 다음과 같이 작동합니다:
 스프링은 애플리케이션이 시작될 때 빈(Bean)이라 불리는 객체들을 생성하고 관리합니다. 빈은 주로 @Component, @Service, @Repository, @Controller, @Configuration 등의 어노테이션이 붙은 클래스들입니다.
@@ -45,7 +45,7 @@ AuthenticationProvider 타입의 빈을 찾습니다.
 public class BeansConfig {
     // 기본 UserDetailsService 구현 대신 커스텀 구현체(UserDetailsServiceImpl)를 사용합니다
     // 이를 통해 사용자 정보를 데이터베이스에서 로드하는 방식을 커스터마이징할 수 있습니다
-    private final UserDetailsService userDetailsService;
+    private final UserDetailsService userDetailsService; // we want to use our own UserDetailsService
 
     /**
      * 인증 제공자(AuthenticationProvider) 빈을 설정합니다.
@@ -59,12 +59,21 @@ public class BeansConfig {
     @Bean
     public AuthenticationProvider authenticationProvider() {
         // DaoAuthenticationProvider는 AuthenticationProvider의 구체적 구현체입니다
+        // 이 클래스는 UserDetailsService와 PasswordEncoder를 사용하여 사용자 인증을 수행합니다.
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         // 사용자 정보를 로드할 UserDetailsService 설정
+        // UserDetailsService는 사용자 정보를 데이터베이스에서 가져오는 인터페이스입니다.
+        // loadUserByUsername(String username) 메서드를 구현해야 하며, 이 메서드는 
+        // 사용자 이름으로 사용자 정보를 조회하여 UserDetails 객체를 반환합니다.
         authProvider.setUserDetailsService(userDetailsService);
         // 비밀번호 검증에 사용할 PasswordEncoder 설정
+        // PasswordEncoder는 비밀번호를 암호화하고 검증하는 인터페이스입니다.
+        // 사용자가 입력한 비밀번호와 데이터베이스에 저장된 암호화된 비밀번호를 비교합니다.
+        // passwordEncoder() 메서드는 이 클래스에 @Bean으로 정의되어야 합니다.
         authProvider.setPasswordEncoder(passwordEncoder());
-        return authProvider;
+        // spring when he will perform checks, he will see or check if the password or raw password provided matches the hashed password.
+        // if is does not match, user will not be authenticated.
+        return authProvider; // 구성된 인증 제공자를 반환하여 Spring Security가 사용할 수 있게 합니다.
     }
 
     /**
@@ -77,6 +86,10 @@ public class BeansConfig {
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
+        // BCryptPasswordEncoder는 Spring Security에서 제공하는 PasswordEncoder 구현체입니다.
+        // 이 인코더는 BCrypt 해싱 함수를 사용하여 비밀번호를 안전하게 암호화합니다.
+        // BCrypt는 솔트(salt)를 자동으로 생성하고 적용하여 레인보우 테이블 공격을 방지합니다.
+        // 기본적으로 10라운드의 해싱을 수행하며, 이는 보안과 성능 사이의 균형을 제공합니다.
         return new BCryptPasswordEncoder();
     }
 
@@ -90,6 +103,7 @@ public class BeansConfig {
      * @return AuthenticationManager 객체
      * @throws Exception 인증 관리자 생성 중 오류 발생 시
      */
+    // for private final AuthenticationManager authenticationManager; in AuthenticationService
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
@@ -104,6 +118,7 @@ public class BeansConfig {
      * 
      * @return 감사 정보를 제공하는 AuditorAware 객체
      */
+    // change in BookNetworkApiWithCustomApplication.java (add bean name)
     @Bean
     public AuditorAware<Integer> auditorAware() {
         return new ApplicationAuditAware();

@@ -106,6 +106,12 @@ public class SecurityConfig {
      * - 정기적인 보안 취약점 검사 실시
      * - 로깅 및 모니터링 구현으로 잠재적 공격 감지
      */
+    // Spring starts scanning classes, it will see SecurityConfig class annotated with @Configuration
+    // and it will see that it is a bean, and it will create an instance of it
+    // and it will inject the dependencies into it
+    // and it will call the securityFilterChain method
+    // and it will return the SecurityFilterChain bean
+    // it will put this bean into the application context
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http

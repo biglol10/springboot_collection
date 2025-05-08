@@ -118,7 +118,7 @@ public class JwtService {
      * @return 추출된 사용자명
      */
     public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
+        return extractClaim(token, Claims::getSubject); // .setSubject(userDetails.getUsername()) 때문에 이렇게 적음
     }
 
     /**

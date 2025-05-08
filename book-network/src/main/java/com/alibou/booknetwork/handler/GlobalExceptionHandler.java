@@ -265,7 +265,7 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * 파라미터 타입 불일치 예외 처리
+     * 파라미터 타입 불일치 예외 처리 (@Valid)
      * 
      * @param exception 발생한 MethodArgumentTypeMismatchException 객체
      * @param request 현재 HTTP 요청 객체

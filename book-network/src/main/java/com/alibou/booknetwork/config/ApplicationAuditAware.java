@@ -31,8 +31,9 @@ import java.util.Optional;
  * 
  * 이 기능을 활성화하려면 @EnableJpaAuditing 어노테이션을 구성 클래스에 추가해야 합니다.
  */
+// we need to provide a bean of type AuditAware in order to tell spring to use this Bean,Class,Implementation to fetch the current auditor
 @Component
-public class ApplicationAuditAware implements AuditorAware<Integer> {
+public class ApplicationAuditAware implements AuditorAware<Integer> { // to transform this class to application audit aware, we need to implement the AuditAware interface. Since Userid is an integer, we need to specify the type as Integer
     
     private static final Logger logger = LoggerFactory.getLogger(ApplicationAuditAware.class);
 

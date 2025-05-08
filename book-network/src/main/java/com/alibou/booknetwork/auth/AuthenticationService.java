@@ -148,13 +148,14 @@ public class AuthenticationService {
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
         // AuthenticationManager를 통해 인증 수행
         // 이 과정에서 UserDetailsService가 호출되어 사용자 정보를 로드하고 비밀번호 검증이 이루어짐
+        // this will take care of the whole authentication process if the username and password are correct, it will return the authentication otherwise it will throw an exception
         var auth = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-        );
+        ); // returns the authentication object (user details and credentials)
         
         // JWT 토큰에 포함할 추가 클레임 설정
         var claims = new HashMap<String, Object>();
-        var user = (User) auth.getPrincipal();
+        var user = (User) auth.getPrincipal();  // no need to get detais from userrepository because we already have the authentication object. We implemented Principal in User class
         // 사용자 전체 이름을 클레임에 추가
         claims.put("fullName", user.fullName());
         

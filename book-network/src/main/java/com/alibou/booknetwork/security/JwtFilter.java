@@ -119,12 +119,15 @@ public class JwtFilter extends OncePerRequestFilter { // OncePerRequestFilter를
                  */
 
                 // 요청 정보를 인증 토큰에 추가 (로깅, 감사 등에 유용)
+                // UsernamePasswordAuthenticationToken은 Spring Security에서 사용자 인증 정보를 담는 객체입니다.
+                // 이 객체는 SecurityContextHolder에 저장되어 인증 상태를 유지합니다.
+                // 예: SecurityContextHolder.getContext().setAuthentication(authToken);
                 authToken.setDetails(
                         new WebAuthenticationDetailsSource().buildDetails(request)
                 );
                 
                 // 생성된 인증 토큰을 SecurityContext에 설정하여 사용자를 인증 상태로 만듦
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                SecurityContextHolder.getContext().setAuthentication(authToken); // kind of manually authenticating my user, because I did all the checks and I know that user is already authenticated
             }
         }
         

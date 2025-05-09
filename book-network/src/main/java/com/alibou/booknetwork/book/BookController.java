@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -123,6 +124,7 @@ public class BookController {
     }
 
     @GetMapping("/search")
+    @Secured({"ADMIN"}) // @Secured({"ADMIN", "USER"})
 //    @Cacheable(cacheNames = "books.search", key = "T(com.alibou.booknetwork.common.generator.CacheKeyGenerator).createKeyFromDto(#searchRequest, 'title&authorName&isbn&synopsis&bookCover&archived&shareable')")
     public ResponseEntity<PageResponse<BookResponse>> searchBooks(
         @ModelAttribute BookSearchRequest searchRequest,

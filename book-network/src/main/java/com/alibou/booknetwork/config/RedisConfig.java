@@ -135,15 +135,16 @@ public class RedisConfig {
             // RedisCacheManager는 Spring의 캐시 추상화 API를 통해 Redis를 캐시 저장소로 사용합니다.
             // null 값은 캐싱하지 않도록 설정 - 불필요한 메모리 사용 방지
             .disableCachingNullValues();
+            
 
         // Redis 캐시 매니저 빌더를 사용하여 캐시 매니저 생성
         return RedisCacheManager.builder(connectionFactory)
             // 위에서 정의한 기본 캐시 설정 적용
             .cacheDefaults(cacheConfig)
-            // "books" 캐시에 대한 특별 설정 - 유효 시간을 5분으로 설정
-            .withCacheConfiguration("books", RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(5)))
-            // "users" 캐시에 대한 특별 설정 - 유효 시간을 1분으로 설정 (더 자주 갱신 필요)
-            .withCacheConfiguration("users", RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(1)))
+            // // "books" 캐시에 대한 특별 설정 - 유효 시간을 5분으로 설정
+            // .withCacheConfiguration("books", RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(5))) // defaultCacheConfig 는 위 설정이 적용되지 않음
+            // // "users" 캐시에 대한 특별 설정 - 유효 시간을 1분으로 설정 (더 자주 갱신 필요)
+            // .withCacheConfiguration("users", RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(1)))
             // 설정이 완료된 캐시 매니저 빌드하여 반환
             .build();
     }

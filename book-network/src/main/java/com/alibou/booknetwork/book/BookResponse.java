@@ -13,9 +13,9 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class BookResponse implements Serializable {
+public class BookResponse {
     // serialVersionUID는 직렬화 버전 관리를 위한 상수
-    private static final long serialVersionUID = 1L;
+    // private static final long serialVersionUID = 1L;
 
     private Integer id;
     private String title;

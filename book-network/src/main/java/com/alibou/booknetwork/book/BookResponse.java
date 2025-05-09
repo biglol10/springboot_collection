@@ -1,5 +1,7 @@
 package com.alibou.booknetwork.book;
 
+import java.io.Serializable;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -11,7 +13,9 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class BookResponse {
+public class BookResponse implements Serializable {
+    // serialVersionUID는 직렬화 버전 관리를 위한 상수
+    private static final long serialVersionUID = 1L;
 
     private Integer id;
     private String title;

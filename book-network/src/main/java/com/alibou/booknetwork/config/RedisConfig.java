@@ -2,6 +2,12 @@ package com.alibou.booknetwork.config;
 
 import java.time.Duration;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
@@ -9,10 +15,12 @@ import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
+@EnableCaching
 public class RedisConfig {
     /**
      * Redis 템플릿 빈 설정
@@ -30,13 +38,82 @@ public class RedisConfig {
         
         // 키 직렬화 도구 설정 - Redis에 저장될 키를 문자열로 직렬화
         template.setKeySerializer(new StringRedisSerializer());
+
+        // 값 직렬화 도구 설정 - Redis에 저장될 값을 JSON 형식으로 직렬화
+        // GenericJackson2JsonRedisSerializer는 객체를 JSON으로 변환하여 Redis에 저장합니다.
+        // 이 직렬화기는 객체의 클래스 정보를 JSON에 포함시켜 역직렬화 시 원본 타입으로 복원할 수 있게 합니다.
+        // BookResponse, PageResponse 등의 객체가 Redis에 저장될 때 이 직렬화기를 통해 처리됩니다.
+        // 단, 이 방식은 JSON에 타입 정보가 포함되어 저장 공간을 더 사용하지만, 다양한 객체 타입을 안전하게 처리할 수 있습니다.
+        template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+
+        /**
+         * 다르게 하면
+         * 
+         * [
+    "com.alibou.booknetwork.common.PageResponse",
+    {
+        "content": [
+            "java.util.ImmutableCollections$ListN",
+            [
+                [
+                    "com.alibou.booknetwork.book.BookResponse",
+                    {
+                        "id": 55,
+                        "title": "토비의 스프링",
+                        "authorName": "이일민",
+                        "isbn": "9788960773431",
+                        "synopsis": "스프링 프레임워크의 원리와 이해",
+                        "owner": null,
+                        "cover": null,
+                        "rate": 0.0,
+                        "archived": false,
+                        "shareable": false
+                    }
+                ]
+            ]
+        ]
+            처럼 떠서 그냥 GenericJackson2JsonRedisSerializer 씀
+         */
+
+         /**
+          * 키값은
+          1) "books::title-\xed\x86\xa0\xeb\xb9\x84:authorName-null:isbn-null:synopsis-null:bookCover-null:archived-null:shareable-null"
+2) "books::title-null:authorName-null:isbn-null:synopsis-null:bookCover-null:archived-null:shareable-null"
+처럼 저장됨
+          */
         
-        // 값 직렬화 도구 설정 - Redis에 저장될 값을 문자열로 직렬화
-        template.setValueSerializer(new StringRedisSerializer());
-        
-        // 구성된 RedisTemplate 반환
+        // 구성된 RedisTemplate 반환 - 이제 이 템플릿으로 Redis 작업 수행 가능
         return template;
     }
+
+    /**
+     * Redis 직렬화에 사용할 ObjectMapper 빈 설정
+     * 
+     * @return 구성된 ObjectMapper 객체
+     */
+    // @Bean(name = "cacheObjectMapper")
+    // public ObjectMapper objectMapper() {
+    //     // ObjectMapper 인스턴스 생성 - JSON 직렬화/역직렬화를 담당
+    //     ObjectMapper objectMapper = new ObjectMapper();
+        
+    //     // JavaTimeModule 등록 - Java 8 날짜/시간 타입(LocalDate, LocalDateTime 등)을 처리
+    //     objectMapper.registerModule(new JavaTimeModule());
+        
+    //     // 다형성 타입 처리 활성화 - 객체의 클래스 정보를 JSON에 포함시켜 역직렬화 시 원본 타입으로 복원 가능
+    //     // BasicPolymorphicTypeValidator로 직렬화 허용 타입 제한 - 보안 강화
+    //     objectMapper.activateDefaultTyping(
+    //             BasicPolymorphicTypeValidator.builder()
+    //                     .allowIfBaseType(Object.class)  // Object 클래스를 기본 타입으로 허용
+    //                     .allowIfSubType(Object.class)   // Object의 모든 하위 타입 허용
+    //                     .build(),
+    //             ObjectMapper.DefaultTyping.NON_FINAL);  // final이 아닌 클래스에 대해 타입 정보 포함
+        
+    //     // 날짜를 타임스탬프가 아닌 ISO-8601 형식으로 직렬화하도록 설정
+    //     // 예: "2023-01-01T12:00:00" 형식으로 저장됨
+    //     objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        
+    //     return objectMapper;
+    // }
 
     @Bean
     public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {

@@ -8,6 +8,8 @@ import com.alibou.booknetwork.history.BookTransactionHistoryRepository;
 import com.alibou.booknetwork.user.User;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -392,13 +394,24 @@ public class BookService {
      * @param size 페이지당 항목 수
      * @return 페이징된 도서 응답 객체
      */
+    @Cacheable(cacheNames = "books", key = "T(com.alibou.booknetwork.common.generator.CacheKeyGenerator).createKeyFromDto(#searchRequest, 'title&authorName&isbn&synopsis&bookCover&archived&shareable')")
     public PageResponse<BookResponse> searchBooks(BookSearchRequest searchRequest, int page, int size) {
+        System.out.println("==============================================");
+        System.out.println("== 서비스 메서드 실행됨 (캐시 미스) ==");
+        System.out.println("== 검색 조건: " + searchRequest);
+        long startTime = System.currentTimeMillis();
+        
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
 
         Page<Book> books = bookRepository.findAll(BookSpecification.buildSearchSpecification(searchRequest), pageable);
         List<BookResponse> bookResponses = books.stream()
                 .map(bookMapper::toBookResponse)
                 .toList();
+
+        long endTime = System.currentTimeMillis();
+        System.out.println("== 실행 시간: " + (endTime - startTime) + "ms");
+        System.out.println("==============================================");
+            
         return new PageResponse<>(
                 bookResponses,
                 books.getNumber(),

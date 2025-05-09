@@ -123,11 +123,11 @@ public class BookController {
     }
 
     @GetMapping("/search")
+//    @Cacheable(cacheNames = "books.search", key = "T(com.alibou.booknetwork.common.generator.CacheKeyGenerator).createKeyFromDto(#searchRequest, 'title&authorName&isbn&synopsis&bookCover&archived&shareable')")
     public ResponseEntity<PageResponse<BookResponse>> searchBooks(
         @ModelAttribute BookSearchRequest searchRequest,
         @RequestParam(name = "page", defaultValue = "0", required = false) int page,
-        @RequestParam(name = "size", defaultValue = "10", required = false) int size,
-        Authentication connectedUser
+        @RequestParam(name = "size", defaultValue = "10", required = false) int size
     ) {
         return ResponseEntity.ok(service.searchBooks(searchRequest, page, size));
     }

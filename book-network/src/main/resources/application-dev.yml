@@ -18,6 +18,16 @@ spring:
         format_sql: true # format the SQL queries
     database: postgresql # 사용할 데이터베이스 종류 지정
     database-platform: org.hibernate.dialect.PostgreSQLDialect # 하이버네이트에서 사용할 데이터베이스 방언
+  # Redis 설정 추가
+  data:
+    redis:
+      host: localhost  # Docker Compose에서 설정한 Redis 호스트
+      port: 6379       # Docker Compose에서 설정한 Redis 포트
+  # 캐시 설정 추가
+  cache:
+    type: redis        # 캐시 타입을 Redis로 명시적 지정
+    redis:
+      time-to-live: 600000  # 기본 캐시 만료 시간 (밀리초, 여기서는 10분)
   mail:
     host: localhost # maildev container. In production, change host, port, username, and password
     port: 1025 # SMTP 서버 포트
@@ -47,3 +57,9 @@ application:
       photos-output-path: ./uploads # 업로드된 사진 파일이 저장될 경로
 server:
   port: 8080 # 애플리케이션이 실행될 HTTP 포트
+
+# Redis 로깅 설정 추가 (선택 사항)
+logging:
+  level:
+    org.springframework.data.redis: DEBUG
+    org.springframework.cache: TRACE

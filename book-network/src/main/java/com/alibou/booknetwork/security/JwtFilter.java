@@ -4,16 +4,21 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import io.jsonwebtoken.ExpiredJwtException;
 
 import java.io.IOException;
 
@@ -32,6 +37,9 @@ public class JwtFilter extends OncePerRequestFilter { // OncePerRequestFilter를
 
     private final JwtService jwtService; // JWT 토큰 처리를 위한 서비스
     private final UserDetailsService userDetailsService; // 사용자 정보를 로드하기 위한 서비스
+
+    @Value("${spring.config.activate.on-profile}")
+    private String profile;
 
     /**
      * 요청이 들어올 때마다 실행되는 필터 메소드
@@ -59,80 +67,105 @@ public class JwtFilter extends OncePerRequestFilter { // OncePerRequestFilter를
             filterChain.doFilter(request, response);
             return;
         }
+
+        try {
+            // 개발 환경에서 mock 로그인 처리
+            if (handleMockLogin(request)) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+            
+            // 일반적인 JWT 토큰 인증 처리
+            if (handleJwtAuthentication(request)) {
+                // JWT 인증 성공 시 아무것도 하지 않음 (이미 SecurityContext에 인증 정보가 설정됨)
+            }
+
+            // 다음 필터로 요청 전달
+            filterChain.doFilter(request, response);
+        } catch (ExpiredJwtException e) {
+            // 토큰 만료 예외 처리
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Token expired");
+        } catch (Exception e) {
+            // 기타 예외 처리
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().write("Authentication error occurred");
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 개발 환경에서 mock 로그인 처리
+     * @return mock 로그인 처리 여부
+     */
+    private boolean handleMockLogin(HttpServletRequest request) {
+        final String mockLogin = request.getHeader("mock-login");
+        final String mockLoginEmail = request.getHeader("mock-login-email");
+        final String mockRole = request.getHeader("mock-role");
         
+        if ("dev".equals(profile) && "Y".equals(mockLogin)) {
+            // 기본값 설정 - 실제 구현에서는 더 안전한 방식으로 처리하세요
+            String userEmail = mockLoginEmail != null && !mockLoginEmail.isEmpty() ? 
+                            mockLoginEmail : "dev-user@example.com";
+            String[] userRole = mockRole != null && !mockRole.isEmpty() ? 
+                            mockRole.split(",") : new String[] {"USER"};
+            
+            UserDetails mockUser = User.builder()
+                .username(userEmail)
+                .password("")
+                .roles(userRole)
+                .build();
+                
+            SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(mockUser, null, mockUser.getAuthorities())
+            );
+            
+            return true;
+        }
+        
+        return false;
+    }
+
+    /**
+     * JWT 토큰 인증 처리
+     * @return 인증 처리 여부
+     */
+    private boolean handleJwtAuthentication(HttpServletRequest request) {
         // Authorization 헤더에서 JWT 토큰 추출
         final String authHeader = request.getHeader(AUTHORIZATION);
-        final String jwt;
-        final String userEmail;
-
-        // Authorization 헤더가 없거나 Bearer 토큰 형식이 아닌 경우 다음 필터로 진행
+        
+        // Authorization 헤더가 없거나 Bearer 토큰 형식이 아닌 경우
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
-            return;
+            return false;
         }
         
         // "Bearer " 접두사(7자) 이후의 문자열을 JWT 토큰으로 추출
-        jwt = authHeader.substring(7);
+        final String jwt = authHeader.substring(7);
         // JWT 토큰에서 사용자 이메일(식별자) 추출
-        userEmail = jwtService.extractUsername(jwt);
-
-        /**
-         * SecurityContextHolder.getContext().getAuthentication() == null은 
-         * 현재 스레드의 보안 컨텍스트에 인증 정보가 없는지 확인하는 조건입니다.
-         * 
-         * SecurityContextHolder: Spring Security에서 현재 인증된 사용자의 정보를 저장하는 핵심 클래스
-         * getContext(): 현재 스레드와 연관된 SecurityContext를 반환
-         * getAuthentication(): SecurityContext에서 Authentication 객체를 반환, 인증 정보가 없으면 null 반환
-         * 
-         * 이 조건은 사용자가 아직 인증되지 않았는지 확인하여 중복 인증을 방지합니다.
-         */
+        final String userEmail = jwtService.extractUsername(jwt);
+        
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             // 이메일을 기반으로 사용자 정보 로드
             UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
             
             // JWT 토큰이 유효한지 검증
             if (jwtService.isTokenValid(jwt, userDetails)) {
-                /**
-                 * UsernamePasswordAuthenticationToken은 Spring Security에서 사용하는 인증 객체입니다.
-                 * 이 객체는 인증된 사용자의 주요 정보와 권한을 담고 있습니다.
-                 * 
-                 * 매개변수:
-                 * 1. userDetails: 사용자의 식별자, 비밀번호, 권한 등의 정보를 포함
-                 * 2. null: 자격 증명(일반적으로 비밀번호)을 나타내며, 여기서는 이미 인증이 완료되었으므로 null 사용
-                 * 3. userDetails.getAuthorities(): 사용자가 가진 권한(roles, authorities) 목록
-                 */
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails,
                         null,
                         userDetails.getAuthorities()
                 );
-
-                /**
-                 * 사용자 정의 UserDetails 사용 시 참고사항:
-                 * 
-                 * UserDetailsService.loadUserByUsername()이 CustomUserDetails 객체를 반환하는 경우,
-                 * SecurityContextHolder.getContext().getAuthentication().getPrincipal()을 통해
-                 * CustomUserDetails 객체를 얻을 수 있습니다.
-                 * 
-                 * 예시:
-                 * CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
-                 */
-
-                // 요청 정보를 인증 토큰에 추가 (로깅, 감사 등에 유용)
-                // UsernamePasswordAuthenticationToken은 Spring Security에서 사용자 인증 정보를 담는 객체입니다.
-                // 이 객체는 SecurityContextHolder에 저장되어 인증 상태를 유지합니다.
-                // 예: SecurityContextHolder.getContext().setAuthentication(authToken);
+                
                 authToken.setDetails(
                         new WebAuthenticationDetailsSource().buildDetails(request)
                 );
                 
-                // 생성된 인증 토큰을 SecurityContext에 설정하여 사용자를 인증 상태로 만듦
-                SecurityContextHolder.getContext().setAuthentication(authToken); // kind of manually authenticating my user, because I did all the checks and I know that user is already authenticated
+                SecurityContextHolder.getContext().setAuthentication(authToken);
+                return true;
             }
         }
         
-        // 다음 필터로 요청 전달
-        filterChain.doFilter(request, response);
+        return false;
     }
 }
 

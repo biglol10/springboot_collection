@@ -201,8 +201,8 @@ public class BookSpecification {
         return Specification.where(titleContains(searchRequest.getTitle()))
                 .and(authorContains(searchRequest.getAuthorName()))
                 .and(withIsbn(searchRequest.getIsbn()))
-                .and(isShareable(searchRequest.isShareable()))
-                .and(isArchived(searchRequest.isArchived()))
+                .and(isShareable(searchRequest.getShareable()))
+                .and(isArchived(searchRequest.getArchived()))
                 .and(synopsisContains(searchRequest.getSynopsis()))
                 .and(bookCoverContains(searchRequest.getBookCover()));
     }

@@ -1,11 +1,15 @@
 package com.alibou.booknetwork;
 
+import com.alibou.booknetwork.auth.AuthenticationService;
+import com.alibou.booknetwork.auth.RegisterationRequest;
 import com.alibou.booknetwork.book.Book;
 import com.alibou.booknetwork.book.BookRepository;
 import com.alibou.booknetwork.role.Role;
 import com.alibou.booknetwork.role.RoleRepository;
 import com.alibou.booknetwork.user.User;
 import com.alibou.booknetwork.user.UserRepository;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -21,6 +25,8 @@ import java.util.List;
 @EnableJpaAuditing(auditorAwareRef = "auditorAware") // we need to tell spring what auditing entity listener to use (the bean named auditorAware that we created) (this is for created_by and updated_by fields)
 @EnableAsync
 public class BookNetworkApiApplication {
+	@Value("${spring.config.activate.on-profile}")
+	private String activeProfile;
 
 	public static void main(String[] args) {
 		SpringApplication.run(BookNetworkApiApplication.class, args);
@@ -32,12 +38,26 @@ public class BookNetworkApiApplication {
 			RoleRepository roleRepository,
 			UserRepository userRepository,
 			BookRepository bookRepository,
-			PasswordEncoder passwordEncoder
+			PasswordEncoder passwordEncoder,
+			AuthenticationService authenticationService
 	) {
 		return args -> {
 			// 역할 초기화
 			Role userRole = null;
 			Role adminRole = null;
+
+			if (activeProfile.equals("dev")) {
+				User tester = userRepository.findByEmail("asdf@asdf.com").orElse(null);
+				if (tester == null) {
+					RegisterationRequest request = RegisterationRequest.builder()
+						.firstname("Tester")
+						.lastname("User")
+						.email("asdf@asdf.com")
+						.password("$2a$10$A6ZHPjOrvPEYHU1EZ1.LrOGbpcdZxJCIYylL/Bp4JqKqHdze5zBB2")
+						.build();
+					authenticationService.registerTestUser(request);
+				}
+			}
 			
 			if (roleRepository.findByName("USER").isEmpty()) {
 				userRole = roleRepository.save(Role.builder().name("USER").build());

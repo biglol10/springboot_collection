@@ -51,6 +51,30 @@ public class AuthenticationService {
     private String activationUrl;
 
     /**
+     * 테스트 사용자를 등록합니다.
+     * 이메일 검증 없이 바로 활성화된 계정을 생성합니다.
+     * 
+     * @param registerationRequest 사용자 등록 정보
+     * @return 생성된 사용자
+     */
+    public User registerTestUser(RegisterationRequest registerationRequest) {
+        var userRole = roleRepository.findByName("USER")
+                .orElseThrow(() -> new IllegalStateException("ROLE USER was not initialized"));
+
+        var user = User.builder()
+                .firstname(registerationRequest.getFirstname())
+                .lastname(registerationRequest.getLastname())
+                .email(registerationRequest.getEmail())
+                .password(registerationRequest.getPassword()) // 이미 암호화된 패스워드라고 가정
+                .accountLocked(false)
+                .enabled(true) // 바로 활성화
+                .roles(List.of(userRole))
+                .build();
+
+        return userRepository.save(user);
+    }
+
+    /**
      * 새 사용자를 등록합니다.
      * 
      * 이 메소드는 사용자 정보를 저장하고, 계정 활성화를 위한 검증 이메일을 발송합니다.

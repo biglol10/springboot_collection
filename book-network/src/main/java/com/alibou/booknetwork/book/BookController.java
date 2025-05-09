@@ -126,7 +126,8 @@ public class BookController {
     public ResponseEntity<PageResponse<BookResponse>> searchBooks(
         @ModelAttribute BookSearchRequest searchRequest,
         @RequestParam(name = "page", defaultValue = "0", required = false) int page,
-        @RequestParam(name = "size", defaultValue = "10", required = false) int size
+        @RequestParam(name = "size", defaultValue = "10", required = false) int size,
+        Authentication connectedUser
     ) {
         return ResponseEntity.ok(service.searchBooks(searchRequest, page, size));
     }

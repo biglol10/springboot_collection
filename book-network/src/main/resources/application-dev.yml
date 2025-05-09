@@ -6,8 +6,8 @@ spring:
       on-profile: dev
   datasource:
     url: jdbc:postgresql://localhost:5432/book_social_network # PostgreSQL 데이터베이스 연결 URL
-    username: postgres # 데이터베이스 접속 사용자명
-    password: postgres # 데이터베이스 접속 비밀번호
+    username: ENC(OYYA1qBAmbdxYvwTjIkkdjz0ZHuhzzEBs2hTbNBddeHAivXXz89H7gtKzjoEPSuU) # 데이터베이스 접속 사용자명
+    password: ENC(OYYA1qBAmbdxYvwTjIkkdjz0ZHuhzzEBs2hTbNBddeHAivXXz89H7gtKzjoEPSuU) # 데이터베이스 접속 비밀번호
     driver-class-name: org.postgresql.Driver # PostgreSQL JDBC 드라이버 클래스
   jpa:
     hibernate:
@@ -47,7 +47,7 @@ spring:
 application:
   security:
     jwt:
-      secret-key: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970 # JWT 토큰 서명에 사용되는 비밀 키
+      secret-key: ENC(BTfI6j7E5qr9noUviBUOhc32FRfBI1Or5xHiOmNzQgSISLZx8taQ1Hygd8Bq7A5meR8rUCDYcqbky05K2qAQVof2F9aJ+XV73k0hbrS9wVEnyMYgAqnqhcRZCQxkI/EY7LFx58kwgnJ7pkkHCkFfDQ==) # JWT 토큰 서명에 사용되는 비밀 키
       expiration: 86400000 # 1 day
   mailing:
     frontend:

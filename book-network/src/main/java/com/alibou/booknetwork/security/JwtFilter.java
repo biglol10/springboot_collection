@@ -8,12 +8,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -37,6 +36,7 @@ public class JwtFilter extends OncePerRequestFilter { // OncePerRequestFilter를
 
     private final JwtService jwtService; // JWT 토큰 처리를 위한 서비스
     private final UserDetailsService userDetailsService; // 사용자 정보를 로드하기 위한 서비스
+    private final CustomAuthenticationProvider customAuthenticationProvider; // 커스텀 인증 제공자
 
     @Value("${spring.config.activate.on-profile}")
     private String profile;
@@ -82,43 +82,46 @@ public class JwtFilter extends OncePerRequestFilter { // OncePerRequestFilter를
 
             // 다음 필터로 요청 전달
             filterChain.doFilter(request, response);
-        } catch (ExpiredJwtException e) {
-            // 토큰 만료 예외 처리
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Token expired");
         } catch (Exception e) {
-            // 기타 예외 처리
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().write("Authentication error occurred");
-            e.printStackTrace();
+            // 모든 예외는 SecurityExceptionHandler에서 처리하도록 위임
+            // 필터에서는 로깅만 수행하고 예외를 다시 던짐
+            log.error("Authentication error in filter: {}", e.getMessage(), e);
+            // 예외를 다시 던져서 ExceptionHandler가 처리하도록 함
+            throw new RuntimeException("Authentication failed", e);
         }
     }
 
     /**
-     * 개발 환경에서 mock 로그인 처리
+     * 개발 환경에서 mock 로그인 처리 (엔터프라이즈 스타일로 확장)
      * @return mock 로그인 처리 여부
      */
     private boolean handleMockLogin(HttpServletRequest request) {
         final String mockLogin = request.getHeader("mock-login");
-        final String mockLoginEmail = request.getHeader("mock-login-email");
-        final String mockRole = request.getHeader("mock-role");
         
         if ("dev".equals(profile) && "Y".equals(mockLogin)) {
-            // 기본값 설정 - 실제 구현에서는 더 안전한 방식으로 처리하세요
+            // Mock 헤더들 추출
+            final String mockLoginEmail = request.getHeader("mock-login-email");
+            final String mockUserId = request.getHeader("mock-user-id");
+            final String mockRole = request.getHeader("mock-role");
+            final String mockAuthorities = request.getHeader("mock-authorities");
+            final String mockFirstName = request.getHeader("mock-first-name");
+            final String mockLastName = request.getHeader("mock-last-name");
+            
+            // 기본값 설정
             String userEmail = mockLoginEmail != null && !mockLoginEmail.isEmpty() ? 
                             mockLoginEmail : "dev-user@example.com";
-            String[] userRole = mockRole != null && !mockRole.isEmpty() ? 
+            Integer userId = mockUserId != null ? Integer.valueOf(mockUserId) : 999;
+            String[] userRoles = mockRole != null && !mockRole.isEmpty() ? 
                             mockRole.split(",") : new String[] {"USER"};
+            String[] authorities = mockAuthorities != null && !mockAuthorities.isEmpty() ? 
+                            mockAuthorities.split(",") : null;
             
-            UserDetails mockUser = User.builder()
-                .username(userEmail)
-                .password("")
-                .roles(userRole)
-                .build();
-                
-            SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken(mockUser, null, mockUser.getAuthorities())
+            // 커스텀 AuthenticationProvider를 사용한 Mock 인증
+            Authentication authentication = customAuthenticationProvider.getMockAuthentication(
+                userEmail, authorities, userId, userRoles
             );
+            
+            SecurityContextHolder.getContext().setAuthentication(authentication);
             
             return true;
         }
@@ -127,7 +130,7 @@ public class JwtFilter extends OncePerRequestFilter { // OncePerRequestFilter를
     }
 
     /**
-     * JWT 토큰 인증 처리
+     * JWT 토큰 인증 처리 (엔터프라이즈 스타일로 개선)
      * @return 인증 처리 여부
      */
     private boolean handleJwtAuthentication(HttpServletRequest request) {
@@ -144,28 +147,104 @@ public class JwtFilter extends OncePerRequestFilter { // OncePerRequestFilter를
         // JWT 토큰에서 사용자 이메일(식별자) 추출
         final String userEmail = jwtService.extractUsername(jwt);
         
+        // 사용자가 아직 인증되지 않았고 토큰이 유효한 경우
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             // 이메일을 기반으로 사용자 정보 로드
             UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
             
-            // JWT 토큰이 유효한지 검증
-            if (jwtService.isTokenValid(jwt, userDetails)) {
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null,
-                        userDetails.getAuthorities()
+            // 클라이언트 IP 주소 추출
+            String clientIpAddress = getClientIpAddress(request);
+            
+            // 엔터프라이즈급 JWT 토큰 검증 (IP 검증 포함)
+            if (jwtService.isTokenValidWithIpCheck(jwt, userDetails, clientIpAddress)) {
+                // JWT에서 권한 정보 추출
+                java.util.List<String> authorities = jwtService.extractAuthorities(jwt);
+                
+                // 토큰 정보 로깅 (디버그 모드)
+                if (log.isDebugEnabled()) {
+                    String tokenId = jwtService.extractTokenId(jwt);
+                    String tokenType = jwtService.extractTokenType(jwt);
+                    log.debug("Processing token: ID={}, Type={}, User={}, IP={}", 
+                             tokenId, tokenType, userEmail, clientIpAddress);
+                }
+                
+                // 커스텀 AuthenticationProvider를 사용한 인증 객체 생성
+                Authentication authentication = customAuthenticationProvider.getAuthentication(
+                    userDetails, authorities
                 );
                 
-                authToken.setDetails(
+                // 요청 상세 정보 설정 (IP, 세션 정보 등)
+                if (authentication instanceof CustomAuthenticationToken) {
+                    ((CustomAuthenticationToken) authentication).setDetails(
                         new WebAuthenticationDetailsSource().buildDetails(request)
-                );
+                    );
+                }
                 
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
                 return true;
             }
         }
         
         return false;
+    }
+
+    /**
+     * 클라이언트의 실제 IP 주소를 추출합니다.
+     * 프록시나 로드 밸런서를 통과한 경우도 고려합니다.
+     * 
+     * @param request HTTP 요청 객체
+     * @return 클라이언트 IP 주소
+     */
+    private String getClientIpAddress(HttpServletRequest request) {
+        // X-Forwarded-For 헤더 확인 (프록시/로드밸런서 통과 시)
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        if (xForwardedFor != null && !xForwardedFor.isEmpty() && !"unknown".equalsIgnoreCase(xForwardedFor)) {
+            // 첫 번째 IP 주소가 실제 클라이언트 IP
+            return xForwardedFor.split(",")[0].trim();
+        }
+        
+        // X-Real-IP 헤더 확인
+        String xRealIp = request.getHeader("X-Real-IP");
+        if (xRealIp != null && !xRealIp.isEmpty() && !"unknown".equalsIgnoreCase(xRealIp)) {
+            return xRealIp;
+        }
+        
+        // Proxy-Client-IP 헤더 확인
+        String proxyClientIp = request.getHeader("Proxy-Client-IP");
+        if (proxyClientIp != null && !proxyClientIp.isEmpty() && !"unknown".equalsIgnoreCase(proxyClientIp)) {
+            return proxyClientIp;
+        }
+        
+        // WL-Proxy-Client-IP 헤더 확인
+        String wlProxyClientIp = request.getHeader("WL-Proxy-Client-IP");
+        if (wlProxyClientIp != null && !wlProxyClientIp.isEmpty() && !"unknown".equalsIgnoreCase(wlProxyClientIp)) {
+            return wlProxyClientIp;
+        }
+        
+        // HTTP_CLIENT_IP 헤더 확인
+        String httpClientIp = request.getHeader("HTTP_CLIENT_IP");
+        if (httpClientIp != null && !httpClientIp.isEmpty() && !"unknown".equalsIgnoreCase(httpClientIp)) {
+            return httpClientIp;
+        }
+        
+        // HTTP_X_FORWARDED_FOR 헤더 확인
+        String httpXForwardedFor = request.getHeader("HTTP_X_FORWARDED_FOR");
+        if (httpXForwardedFor != null && !httpXForwardedFor.isEmpty() && !"unknown".equalsIgnoreCase(httpXForwardedFor)) {
+            return httpXForwardedFor;
+        }
+        
+        // 기본 방법: 직접 연결된 클라이언트 IP
+        return request.getRemoteAddr();
+    }
+
+    /**
+     * User-Agent 정보를 추출합니다.
+     * 
+     * @param request HTTP 요청 객체
+     * @return User-Agent 문자열
+     */
+    private String getUserAgent(HttpServletRequest request) {
+        return request.getHeader("User-Agent");
     }
 }
 

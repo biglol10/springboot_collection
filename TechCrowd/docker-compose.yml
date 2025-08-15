@@ -1,0 +1,18 @@
+services:
+  mail-dev:
+    container_name: mail-dev-bsn
+    image: maildev/maildev
+    ports:
+      - 1080:1080
+      - 1025:1025
+  redis:
+    # platform: linux/amd64 # 맥북인 경우에 activate
+    image: redis:7.2.4
+    command: redis-server --port 6379
+    restart: always
+    ports:
+      - 6379:6379
+
+networks:
+  techcrowd:
+    driver: bridge

@@ -1,0 +1,199 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "book-network.fullname" . }}
+  labels:
+    {{- include "book-network.labels" . | nindent 4 }}
+  annotations:
+    deployment.kubernetes.io/revision: "1"
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  selector:
+    matchLabels:
+      {{- include "book-network.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/api/v1/actuator/prometheus"
+      labels:
+        {{- include "book-network.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "book-network.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      
+      {{- if .Values.initContainers.dbMigration.enabled }}
+      initContainers:
+        - name: db-migration
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.initContainers.dbMigration.image.repository }}:{{ .Values.initContainers.dbMigration.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            {{- toYaml .Values.initContainers.dbMigration.command | nindent 12 }}
+          env:
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "book-network.fullname" . }}-secret
+                  key: DB_USERNAME
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "book-network.fullname" . }}-secret
+                  key: DB_PASSWORD
+          volumeMounts:
+            - name: migrations
+              mountPath: /migrations
+              readOnly: true
+      {{- end }}
+      
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: actuator
+              containerPort: 8080
+              protocol: TCP
+          
+          {{- if .Values.healthchecks.livenessProbe }}
+          livenessProbe:
+            {{- toYaml .Values.healthchecks.livenessProbe | nindent 12 }}
+          {{- end }}
+          
+          {{- if .Values.healthchecks.readinessProbe }}
+          readinessProbe:
+            {{- toYaml .Values.healthchecks.readinessProbe | nindent 12 }}
+          {{- end }}
+          
+          {{- if .Values.healthchecks.startupProbe }}
+          startupProbe:
+            {{- toYaml .Values.healthchecks.startupProbe | nindent 12 }}
+          {{- end }}
+          
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          
+          env:
+            {{- range .Values.env }}
+            - name: {{ .name }}
+              value: {{ .value | quote }}
+            {{- end }}
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "book-network.fullname" . }}-secret
+                  key: DB_USERNAME
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "book-network.fullname" . }}-secret
+                  key: DB_PASSWORD
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "book-network.fullname" . }}-secret
+                  key: REDIS_PASSWORD
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "book-network.fullname" . }}-secret
+                  key: JWT_SECRET
+          
+          volumeMounts:
+            - name: config
+              mountPath: /app/config
+              readOnly: true
+            {{- if .Values.persistence.uploads.enabled }}
+            - name: uploads
+              mountPath: /app/uploads
+            {{- end }}
+            {{- if .Values.persistence.logs.enabled }}
+            - name: logs
+              mountPath: /app/logs
+            {{- end }}
+            - name: tmp
+              mountPath: /tmp
+            - name: var-cache
+              mountPath: /var/cache
+        
+        {{- if .Values.sidecars.logRotation.enabled }}
+        - name: log-rotation
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.sidecars.logRotation.image.repository }}:{{ .Values.sidecars.logRotation.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            {{- toYaml .Values.sidecars.logRotation.command | nindent 12 }}
+          resources:
+            {{- toYaml .Values.sidecars.logRotation.resources | nindent 12 }}
+          volumeMounts:
+            {{- if .Values.persistence.logs.enabled }}
+            - name: logs
+              mountPath: /app/logs
+            {{- end }}
+        {{- end }}
+      
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "book-network.fullname" . }}-config
+        {{- if .Values.persistence.uploads.enabled }}
+        - name: uploads
+          persistentVolumeClaim:
+            claimName: {{ include "book-network.fullname" . }}-uploads
+        {{- end }}
+        {{- if .Values.persistence.logs.enabled }}
+        - name: logs
+          persistentVolumeClaim:
+            claimName: {{ include "book-network.fullname" . }}-logs
+        {{- end }}
+        - name: tmp
+          emptyDir: {}
+        - name: var-cache
+          emptyDir: {}
+        {{- if .Values.initContainers.dbMigration.enabled }}
+        - name: migrations
+          configMap:
+            name: {{ include "book-network.fullname" . }}-migrations
+        {{- end }}
+      
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always

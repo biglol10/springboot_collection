@@ -1,0 +1,107 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: book-network-prod
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: book-network
+    app.kubernetes.io/instance: prod
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/component: application
+    app.kubernetes.io/part-of: book-network-platform
+    app.kubernetes.io/managed-by: argocd
+    environment: production
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    notifications.argoproj.io/subscribe.on-sync-succeeded.slack: book-network-prod
+    notifications.argoproj.io/subscribe.on-sync-failed.slack: book-network-critical
+    notifications.argoproj.io/subscribe.on-health-degraded.slack: book-network-critical
+    notifications.argoproj.io/subscribe.on-sync-running.email: devops@yourcompany.com
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: book-network
+  
+  # Source configuration
+  source:
+    repoURL: https://github.com/your-org/book-network
+    path: helm/book-network
+    targetRevision: main
+    helm:
+      valueFiles:
+        - values.yaml
+        - values-prod.yaml
+      parameters:
+        - name: image.tag
+          value: "1.0.0"
+        - name: replicaCount
+          value: "5"
+        - name: resources.requests.memory
+          value: "512Mi"
+        - name: resources.requests.cpu
+          value: "500m"
+        - name: resources.limits.memory
+          value: "1Gi"
+        - name: resources.limits.cpu
+          value: "1000m"
+        - name: autoscaling.enabled
+          value: "true"
+        - name: autoscaling.minReplicas
+          value: "5"
+        - name: autoscaling.maxReplicas
+          value: "20"
+        - name: postgresql.enabled
+          value: "false"  # External managed database
+        - name: redis.enabled
+          value: "false"  # External managed Redis
+        - name: monitoring.enabled
+          value: "true"
+        - name: ingress.hosts[0].host
+          value: "book-network.yourcompany.com"
+        - name: ingress.tls[0].secretName
+          value: "book-network-prod-tls"
+        - name: backup.enabled
+          value: "true"
+  
+  # Destination configuration
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: book-network-prod
+  
+  # Sync policy (more conservative for production)
+  syncPolicy:
+    automated:
+      prune: false  # Manual pruning for production
+      selfHeal: false  # Manual healing for production
+      allowEmpty: false
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+      - ApplyOutOfSyncOnly=true
+      - RespectIgnoreDifferences=true
+      - Validate=true
+    retry:
+      limit: 3
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 5m
+  
+  # Health check configuration
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /spec/replicas  # Managed by HPA
+    - group: autoscaling
+      kind: HorizontalPodAutoscaler
+      jsonPointers:
+        - /status
+    - group: ""
+      kind: Service
+      jsonPointers:
+        - /metadata/annotations/service.beta.kubernetes.io~1aws-load-balancer-backend-protocol
+  
+  # Revision history
+  revisionHistoryLimit: 20

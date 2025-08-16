@@ -1,0 +1,198 @@
+{{- if and .Values.monitoring.enabled .Values.monitoring.prometheus.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "book-network.fullname" . }}
+  labels:
+    {{- include "book-network.labels" . | nindent 4 }}
+    {{- include "book-network.monitoringLabels" . | nindent 4 }}
+    app.kubernetes.io/component: monitoring
+spec:
+  selector:
+    matchLabels:
+      {{- include "book-network.selectorLabels" . | nindent 6 }}
+  endpoints:
+  - port: http
+    path: /api/v1/actuator/prometheus
+    interval: {{ .Values.monitoring.prometheus.serviceMonitor.interval | default "30s" }}
+    scrapeTimeout: {{ .Values.monitoring.prometheus.serviceMonitor.scrapeTimeout | default "10s" }}
+    scheme: http
+    honorLabels: true
+    metricRelabelings:
+    - sourceLabels: [__name__]
+      regex: 'jvm_.*'
+      targetLabel: component
+      replacement: 'jvm'
+    - sourceLabels: [__name__]
+      regex: 'http_.*'
+      targetLabel: component
+      replacement: 'http'
+    - sourceLabels: [__name__]
+      regex: 'spring_.*'
+      targetLabel: component
+      replacement: 'spring'
+    - sourceLabels: [__name__]
+      regex: 'business_.*'
+      targetLabel: component
+      replacement: 'business'
+    relabelings:
+    - sourceLabels: [__meta_kubernetes_pod_name]
+      targetLabel: pod
+    - sourceLabels: [__meta_kubernetes_pod_node_name]
+      targetLabel: node
+    - sourceLabels: [__meta_kubernetes_namespace]
+      targetLabel: namespace
+    - sourceLabels: [__meta_kubernetes_service_name]
+      targetLabel: service
+  namespaceSelector:
+    matchNames:
+    - {{ .Release.Namespace }}
+{{- end }}
+---
+{{- if and .Values.monitoring.enabled .Values.monitoring.prometheus.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "book-network.fullname" . }}-alerts
+  labels:
+    {{- include "book-network.labels" . | nindent 4 }}
+    app.kubernetes.io/component: alerting-rules
+spec:
+  groups:
+  - name: book-network.application.rules
+    interval: 30s
+    rules:
+    - alert: BookNetworkHighErrorRate
+      expr: |
+        (
+          rate(http_requests_total{job="{{ include "book-network.fullname" . }}", status=~"5.."}[5m])
+          /
+          rate(http_requests_total{job="{{ include "book-network.fullname" . }}"}[5m])
+        ) > 0.1
+      for: 5m
+      labels:
+        severity: warning
+        service: book-network
+      annotations:
+        summary: "High error rate detected in Book Network application"
+        description: "Error rate is {{ "{{ $value | humanizePercentage }}" }} for the last 5 minutes"
+    
+    - alert: BookNetworkHighResponseTime
+      expr: |
+        histogram_quantile(0.95, 
+          rate(http_request_duration_seconds_bucket{job="{{ include "book-network.fullname" . }}"}[5m])
+        ) > 2
+      for: 5m
+      labels:
+        severity: warning
+        service: book-network
+      annotations:
+        summary: "High response time detected in Book Network application"
+        description: "95th percentile response time is {{ "{{ $value }}" }}s for the last 5 minutes"
+    
+    - alert: BookNetworkHighMemoryUsage
+      expr: |
+        (
+          container_memory_working_set_bytes{pod=~"{{ include "book-network.fullname" . }}-.*"}
+          /
+          container_spec_memory_limit_bytes{pod=~"{{ include "book-network.fullname" . }}-.*"}
+        ) > 0.9
+      for: 10m
+      labels:
+        severity: critical
+        service: book-network
+      annotations:
+        summary: "High memory usage detected in Book Network application"
+        description: "Memory usage is {{ "{{ $value | humanizePercentage }}" }} of the limit"
+    
+    - alert: BookNetworkDatabaseConnectionFailure
+      expr: |
+        hikaricp_connections_active{job="{{ include "book-network.fullname" . }}"} == 0
+      for: 2m
+      labels:
+        severity: critical
+        service: book-network
+      annotations:
+        summary: "Database connection failure in Book Network application"
+        description: "No active database connections detected"
+    
+    - alert: BookNetworkRedisConnectionFailure
+      expr: |
+        redis_connected_clients{job="{{ include "book-network.fullname" . }}"} == 0
+      for: 2m
+      labels:
+        severity: warning
+        service: book-network
+      annotations:
+        summary: "Redis connection failure in Book Network application"
+        description: "No Redis connections detected"
+    
+    - alert: BookNetworkPodCrashLooping
+      expr: |
+        rate(kube_pod_container_status_restarts_total{pod=~"{{ include "book-network.fullname" . }}-.*"}[5m]) > 0
+      for: 5m
+      labels:
+        severity: critical
+        service: book-network
+      annotations:
+        summary: "Pod crash looping in Book Network application"
+        description: "Pod {{ "{{ $labels.pod }}" }} has been restarting frequently"
+    
+    - alert: BookNetworkLowDiskSpace
+      expr: |
+        (
+          node_filesystem_avail_bytes{mountpoint="/"}
+          /
+          node_filesystem_size_bytes{mountpoint="/"}
+        ) < 0.1
+      for: 5m
+      labels:
+        severity: warning
+        service: book-network
+      annotations:
+        summary: "Low disk space on Book Network node"
+        description: "Only {{ "{{ $value | humanizePercentage }}" }} disk space remaining"
+
+  - name: book-network.business.rules
+    interval: 60s
+    rules:
+    - alert: BookNetworkLowBookRegistrations
+      expr: |
+        rate(books_registered_total{job="{{ include "book-network.fullname" . }}"}[1h]) < 0.01
+      for: 30m
+      labels:
+        severity: warning
+        service: book-network
+        type: business
+      annotations:
+        summary: "Low book registration rate"
+        description: "Book registration rate is {{ "{{ $value }}" }} books per second over the last hour"
+    
+    - alert: BookNetworkHighBorrowFailureRate
+      expr: |
+        (
+          rate(books_borrow_failures_total{job="{{ include "book-network.fullname" . }}"}[10m])
+          /
+          rate(books_borrow_attempts_total{job="{{ include "book-network.fullname" . }}"}[10m])
+        ) > 0.2
+      for: 10m
+      labels:
+        severity: warning
+        service: book-network
+        type: business
+      annotations:
+        summary: "High book borrow failure rate"
+        description: "Book borrow failure rate is {{ "{{ $value | humanizePercentage }}" }}"
+    
+    - alert: BookNetworkUserLoginFailures
+      expr: |
+        rate(users_login_failures_total{job="{{ include "book-network.fullname" . }}"}[5m]) > 10
+      for: 5m
+      labels:
+        severity: warning
+        service: book-network
+        type: security
+      annotations:
+        summary: "High user login failure rate"
+        description: "User login failure rate is {{ "{{ $value }}" }} failures per second"
+{{- end }}

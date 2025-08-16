@@ -1,0 +1,45 @@
+apiVersion: v2
+name: book-network
+description: A Helm chart for Book Network microservices application
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+
+keywords:
+  - microservices
+  - spring-boot
+  - kubernetes
+  - book-management
+  - library
+
+home: https://github.com/your-org/book-network
+sources:
+  - https://github.com/your-org/book-network
+
+maintainers:
+  - name: DevOps Team
+    email: devops@yourcompany.com
+
+annotations:
+  category: Application
+
+dependencies:
+  - name: postgresql
+    version: 12.1.2
+    repository: https://charts.bitnami.com/bitnami
+    condition: postgresql.enabled
+  
+  - name: redis
+    version: 17.3.7
+    repository: https://charts.bitnami.com/bitnami
+    condition: redis.enabled
+  
+  - name: prometheus
+    version: 15.18.0
+    repository: https://prometheus-community.github.io/helm-charts
+    condition: monitoring.prometheus.enabled
+  
+  - name: grafana
+    version: 6.50.7
+    repository: https://grafana.github.io/helm-charts
+    condition: monitoring.grafana.enabled

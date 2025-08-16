@@ -1,0 +1,148 @@
+{{- if .Values.configMap.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "book-network.fullname" . }}-config
+  labels:
+    {{- include "book-network.labels" . | nindent 4 }}
+    app.kubernetes.io/component: configuration
+data:
+  {{- with .Values.configMap.data }}
+  {{- toYaml . | nindent 2 }}
+  {{- end }}
+{{- end }}
+---
+{{- if .Values.migration.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "book-network.fullname" . }}-migrations
+  labels:
+    {{- include "book-network.labels" . | nindent 4 }}
+    app.kubernetes.io/component: migrations
+data:
+  001_initial_schema.up.sql: |
+    -- Initial database schema for book network
+    CREATE TABLE IF NOT EXISTS users (
+        id BIGSERIAL PRIMARY KEY,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        first_name VARCHAR(100) NOT NULL,
+        last_name VARCHAR(100) NOT NULL,
+        date_of_birth DATE,
+        account_locked BOOLEAN DEFAULT FALSE,
+        enabled BOOLEAN DEFAULT FALSE,
+        created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        last_modified_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS roles (
+        id BIGSERIAL PRIMARY KEY,
+        name VARCHAR(50) UNIQUE NOT NULL,
+        created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        last_modified_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS user_roles (
+        user_id BIGINT NOT NULL,
+        role_id BIGINT NOT NULL,
+        PRIMARY KEY (user_id, role_id),
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS tokens (
+        id BIGSERIAL PRIMARY KEY,
+        token VARCHAR(255) UNIQUE NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        expires_at TIMESTAMP NOT NULL,
+        validated_at TIMESTAMP,
+        user_id BIGINT NOT NULL,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS books (
+        id BIGSERIAL PRIMARY KEY,
+        title VARCHAR(255) NOT NULL,
+        author_name VARCHAR(255) NOT NULL,
+        isbn VARCHAR(20) UNIQUE,
+        synopsis TEXT,
+        book_cover VARCHAR(255),
+        archived BOOLEAN DEFAULT FALSE,
+        shareable BOOLEAN DEFAULT TRUE,
+        created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        last_modified_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_by BIGINT,
+        last_modified_by BIGINT,
+        owner_id BIGINT NOT NULL,
+        FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS book_transaction_history (
+        id BIGSERIAL PRIMARY KEY,
+        returned BOOLEAN DEFAULT FALSE,
+        return_approved BOOLEAN DEFAULT FALSE,
+        created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        last_modified_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_by BIGINT,
+        last_modified_by BIGINT,
+        book_id BIGINT NOT NULL,
+        user_id BIGINT NOT NULL,
+        FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS feedbacks (
+        id BIGSERIAL PRIMARY KEY,
+        note TEXT,
+        comment TEXT,
+        created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        last_modified_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_by BIGINT,
+        last_modified_by BIGINT,
+        book_id BIGINT NOT NULL,
+        FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE
+    );
+
+    -- Insert default roles
+    INSERT INTO roles (name) VALUES ('USER') ON CONFLICT (name) DO NOTHING;
+    INSERT INTO roles (name) VALUES ('ADMIN') ON CONFLICT (name) DO NOTHING;
+
+    -- Create indexes for performance
+    CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+    CREATE INDEX IF NOT EXISTS idx_books_owner_id ON books(owner_id);
+    CREATE INDEX IF NOT EXISTS idx_books_isbn ON books(isbn);
+    CREATE INDEX IF NOT EXISTS idx_book_transaction_history_book_id ON book_transaction_history(book_id);
+    CREATE INDEX IF NOT EXISTS idx_book_transaction_history_user_id ON book_transaction_history(user_id);
+    CREATE INDEX IF NOT EXISTS idx_feedbacks_book_id ON feedbacks(book_id);
+    CREATE INDEX IF NOT EXISTS idx_tokens_user_id ON tokens(user_id);
+    CREATE INDEX IF NOT EXISTS idx_tokens_token ON tokens(token);
+
+  002_add_monitoring_tables.up.sql: |
+    -- Monitoring and analytics tables
+    CREATE TABLE IF NOT EXISTS user_activities (
+        id BIGSERIAL PRIMARY KEY,
+        user_id BIGINT NOT NULL,
+        activity_type VARCHAR(50) NOT NULL,
+        activity_data JSONB,
+        ip_address INET,
+        user_agent TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS system_metrics (
+        id BIGSERIAL PRIMARY KEY,
+        metric_name VARCHAR(100) NOT NULL,
+        metric_value DECIMAL(10,2) NOT NULL,
+        metric_type VARCHAR(50) NOT NULL,
+        tags JSONB,
+        recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- Indexes for monitoring tables
+    CREATE INDEX IF NOT EXISTS idx_user_activities_user_id ON user_activities(user_id);
+    CREATE INDEX IF NOT EXISTS idx_user_activities_created_at ON user_activities(created_at);
+    CREATE INDEX IF NOT EXISTS idx_system_metrics_metric_name ON system_metrics(metric_name);
+    CREATE INDEX IF NOT EXISTS idx_system_metrics_recorded_at ON system_metrics(recorded_at);
+{{- end }}

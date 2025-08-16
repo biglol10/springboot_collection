@@ -1,0 +1,103 @@
+# =============================================================================
+# 마이크로서비스 공통 Dockerfile
+# =============================================================================
+# 멀티스테이지 빌드를 통한 최적화된 컨테이너 이미지
+# Spring Boot 애플리케이션에 특화된 구성
+
+# =============================================================================
+# Stage 1: Build Stage (빌드 환경)
+# =============================================================================
+FROM eclipse-temurin:17-jdk-alpine AS builder
+
+# 작업 디렉토리 설정
+WORKDIR /app
+
+# 메타데이터 라벨
+LABEL stage=builder
+LABEL description="Build stage for Book Network microservices"
+
+# 필수 도구 설치
+RUN apk add --no-cache \
+    curl \
+    wget \
+    git \
+    && rm -rf /var/cache/apk/*
+
+# Maven Wrapper 복사 (캐시 최적화)
+COPY .mvn/ .mvn/
+COPY mvnw pom.xml ./
+
+# 의존성 다운로드 (캐시 레이어)
+RUN ./mvnw dependency:go-offline -B
+
+# 소스 코드 복사
+COPY src/ src/
+
+# 애플리케이션 빌드
+RUN ./mvnw clean package -DskipTests -B && \
+    mkdir -p target/dependency && \
+    cd target/dependency && \
+    jar -xf ../*.jar
+
+# =============================================================================
+# Stage 2: Runtime Stage (실행 환경)
+# =============================================================================
+FROM eclipse-temurin:17-jre-alpine AS runtime
+
+# 메타데이터 라벨
+LABEL maintainer="Book Network Team"
+LABEL version="1.0.0"
+LABEL description="Book Network Microservice Container"
+
+# 작업 디렉토리 설정
+WORKDIR /app
+
+# 보안 및 운영을 위한 사용자 생성
+RUN addgroup -g 1001 -S booknetwork && \
+    adduser -u 1001 -S booknetwork -G booknetwork
+
+# 필수 도구 설치 (최소한의 도구만)
+RUN apk add --no-cache \
+    curl \
+    dumb-init \
+    && rm -rf /var/cache/apk/*
+
+# 애플리케이션 파일 복사 (빌드 스테이지에서)
+COPY --from=builder /app/target/dependency/BOOT-INF/lib /app/lib
+COPY --from=builder /app/target/dependency/META-INF /app/META-INF
+COPY --from=builder /app/target/dependency/BOOT-INF/classes /app
+
+# 로그 디렉토리 생성 및 권한 설정
+RUN mkdir -p /app/logs && \
+    chown -R booknetwork:booknetwork /app
+
+# 사용자 전환 (보안)
+USER booknetwork:booknetwork
+
+# JVM 최적화 환경변수
+ENV JAVA_OPTS="-XX:+UseG1GC \
+               -XX:+UseContainerSupport \
+               -XX:MaxRAMPercentage=75.0 \
+               -Djava.security.egd=file:/dev/./urandom \
+               -Dspring.profiles.active=docker"
+
+# 애플리케이션 포트
+EXPOSE 8080
+
+# 헬스체크 설정
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8080/actuator/health || exit 1
+
+# 애플리케이션 시작 (dumb-init으로 신호 처리 최적화)
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["sh", "-c", "java $JAVA_OPTS -cp /app:/app/lib/* com.alibou.booknetwork.${SERVICE_NAME}.${SERVICE_NAME}Application"]
+
+# =============================================================================
+# Docker 이미지 최적화 팁
+# =============================================================================
+# 1. .dockerignore 파일 사용으로 불필요한 파일 제외
+# 2. 멀티스테이지 빌드로 이미지 크기 최소화
+# 3. Alpine Linux 사용으로 경량화
+# 4. 레이어 캐싱 최적화
+# 5. 보안을 위한 non-root 사용자 사용
+# 6. dumb-init으로 PID 1 문제 해결

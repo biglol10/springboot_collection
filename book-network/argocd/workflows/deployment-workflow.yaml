@@ -1,0 +1,406 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: book-network-deployment-workflow
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: deployment-workflow
+    app.kubernetes.io/component: cicd
+    app.kubernetes.io/part-of: book-network-platform
+  annotations:
+    workflows.argoproj.io/description: "Automated deployment workflow for Book Network application"
+spec:
+  entrypoint: deploy-application
+  
+  # Workflow arguments
+  arguments:
+    parameters:
+      - name: environment
+        value: "dev"
+      - name: image-tag
+        value: "latest"
+      - name: app-name
+        value: "book-network"
+      - name: git-revision
+        value: "HEAD"
+      - name: notification-channel
+        value: "book-network-deployments"
+  
+  # Volume templates
+  volumeClaimTemplates:
+    - metadata:
+        name: workspace
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+  
+  templates:
+    # Main workflow template
+    - name: deploy-application
+      dag:
+        tasks:
+          # Pre-deployment validation
+          - name: validate-environment
+            template: validate-environment
+            arguments:
+              parameters:
+                - name: environment
+                  value: "{{workflow.parameters.environment}}"
+          
+          # Security scanning
+          - name: security-scan
+            template: security-scan
+            arguments:
+              parameters:
+                - name: image-tag
+                  value: "{{workflow.parameters.image-tag}}"
+            depends: validate-environment
+          
+          # Pre-deployment tests
+          - name: pre-deployment-tests
+            template: pre-deployment-tests
+            arguments:
+              parameters:
+                - name: environment
+                  value: "{{workflow.parameters.environment}}"
+            depends: security-scan
+          
+          # Deploy to target environment
+          - name: deploy
+            template: deploy
+            arguments:
+              parameters:
+                - name: environment
+                  value: "{{workflow.parameters.environment}}"
+                - name: image-tag
+                  value: "{{workflow.parameters.image-tag}}"
+            depends: pre-deployment-tests
+          
+          # Post-deployment verification
+          - name: health-check
+            template: health-check
+            arguments:
+              parameters:
+                - name: environment
+                  value: "{{workflow.parameters.environment}}"
+            depends: deploy
+          
+          # Performance tests
+          - name: performance-tests
+            template: performance-tests
+            arguments:
+              parameters:
+                - name: environment
+                  value: "{{workflow.parameters.environment}}"
+            depends: health-check
+            when: "{{workflow.parameters.environment}} != 'prod'"
+          
+          # Smoke tests
+          - name: smoke-tests
+            template: smoke-tests
+            arguments:
+              parameters:
+                - name: environment
+                  value: "{{workflow.parameters.environment}}"
+            depends: health-check
+          
+          # Send success notification
+          - name: notify-success
+            template: notify-success
+            arguments:
+              parameters:
+                - name: environment
+                  value: "{{workflow.parameters.environment}}"
+                - name: image-tag
+                  value: "{{workflow.parameters.image-tag}}"
+            depends: "smoke-tests && (performance-tests || {{workflow.parameters.environment}} == 'prod')"
+    
+    # Validation template
+    - name: validate-environment
+      inputs:
+        parameters:
+          - name: environment
+      container:
+        image: alpine/k8s:1.24.0
+        command: [sh, -c]
+        args:
+          - |
+            set -e
+            echo "Validating environment: {{inputs.parameters.environment}}"
+            
+            # Check if namespace exists
+            kubectl get namespace book-network-{{inputs.parameters.environment}} || {
+              echo "Creating namespace book-network-{{inputs.parameters.environment}}"
+              kubectl create namespace book-network-{{inputs.parameters.environment}}
+            }
+            
+            # Validate cluster resources
+            kubectl get nodes
+            kubectl get storageclass
+            
+            # Check resource quotas
+            kubectl describe quota -n book-network-{{inputs.parameters.environment}} || true
+            
+            echo "Environment validation completed successfully"
+    
+    # Security scanning template
+    - name: security-scan
+      inputs:
+        parameters:
+          - name: image-tag
+      container:
+        image: aquasec/trivy:latest
+        command: [sh, -c]
+        args:
+          - |
+            set -e
+            echo "Running security scan for image tag: {{inputs.parameters.image-tag}}"
+            
+            # Scan the container image for vulnerabilities
+            trivy image --exit-code 1 --severity HIGH,CRITICAL book-network/app:{{inputs.parameters.image-tag}}
+            
+            echo "Security scan completed successfully"
+    
+    # Pre-deployment tests template
+    - name: pre-deployment-tests
+      inputs:
+        parameters:
+          - name: environment
+      container:
+        image: book-network/tests:latest
+        command: [sh, -c]
+        args:
+          - |
+            set -e
+            echo "Running pre-deployment tests for environment: {{inputs.parameters.environment}}"
+            
+            # Run unit tests
+            npm test
+            
+            # Run integration tests if not production
+            if [ "{{inputs.parameters.environment}}" != "prod" ]; then
+              npm run test:integration
+            fi
+            
+            echo "Pre-deployment tests completed successfully"
+    
+    # Deployment template
+    - name: deploy
+      inputs:
+        parameters:
+          - name: environment
+          - name: image-tag
+      container:
+        image: argoproj/argocd:v2.5.0
+        command: [sh, -c]
+        args:
+          - |
+            set -e
+            echo "Deploying to environment: {{inputs.parameters.environment}}"
+            
+            # Login to ArgoCD
+            argocd login argocd-server.argocd.svc.cluster.local:443 --insecure --username admin --password $ARGOCD_PASSWORD
+            
+            # Update application image tag
+            argocd app set book-network-{{inputs.parameters.environment}} \
+              --parameter image.tag={{inputs.parameters.image-tag}}
+            
+            # Sync the application
+            argocd app sync book-network-{{inputs.parameters.environment}} --prune
+            
+            # Wait for sync to complete
+            argocd app wait book-network-{{inputs.parameters.environment}} --timeout 600
+            
+            echo "Deployment completed successfully"
+        env:
+          - name: ARGOCD_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: argocd-secret
+                key: admin.password
+    
+    # Health check template
+    - name: health-check
+      inputs:
+        parameters:
+          - name: environment
+      container:
+        image: curlimages/curl:7.85.0
+        command: [sh, -c]
+        args:
+          - |
+            set -e
+            echo "Running health checks for environment: {{inputs.parameters.environment}}"
+            
+            # Wait for application to be ready
+            sleep 30
+            
+            # Check application health endpoint
+            for i in $(seq 1 10); do
+              if curl -f http://book-network.book-network-{{inputs.parameters.environment}}.svc.cluster.local:8080/api/v1/actuator/health; then
+                echo "Health check passed"
+                break
+              else
+                echo "Health check attempt $i failed, retrying..."
+                sleep 10
+              fi
+              if [ $i -eq 10 ]; then
+                echo "Health check failed after 10 attempts"
+                exit 1
+              fi
+            done
+            
+            echo "Health checks completed successfully"
+    
+    # Performance tests template
+    - name: performance-tests
+      inputs:
+        parameters:
+          - name: environment
+      container:
+        image: loadimpact/k6:latest
+        command: [sh, -c]
+        args:
+          - |
+            set -e
+            echo "Running performance tests for environment: {{inputs.parameters.environment}}"
+            
+            # Create K6 test script
+            cat > /tmp/performance-test.js << 'EOF'
+            import http from 'k6/http';
+            import { check, sleep } from 'k6';
+            
+            export let options = {
+              vus: 10,
+              duration: '2m',
+              thresholds: {
+                http_req_duration: ['p(95)<500'],
+                http_req_failed: ['rate<0.1'],
+              },
+            };
+            
+            export default function () {
+              let response = http.get('http://book-network.book-network-{{inputs.parameters.environment}}.svc.cluster.local:8080/api/v1/actuator/health');
+              check(response, {
+                'status is 200': (r) => r.status === 200,
+                'response time < 500ms': (r) => r.timings.duration < 500,
+              });
+              sleep(1);
+            }
+            EOF
+            
+            # Run performance tests
+            k6 run /tmp/performance-test.js
+            
+            echo "Performance tests completed successfully"
+    
+    # Smoke tests template
+    - name: smoke-tests
+      inputs:
+        parameters:
+          - name: environment
+      container:
+        image: book-network/tests:latest
+        command: [sh, -c]
+        args:
+          - |
+            set -e
+            echo "Running smoke tests for environment: {{inputs.parameters.environment}}"
+            
+            # Set base URL based on environment
+            BASE_URL="http://book-network.book-network-{{inputs.parameters.environment}}.svc.cluster.local:8080"
+            
+            # Run smoke tests
+            npm run test:smoke -- --baseUrl=$BASE_URL
+            
+            echo "Smoke tests completed successfully"
+    
+    # Success notification template
+    - name: notify-success
+      inputs:
+        parameters:
+          - name: environment
+          - name: image-tag
+      container:
+        image: curlimages/curl:7.85.0
+        command: [sh, -c]
+        args:
+          - |
+            set -e
+            echo "Sending success notification"
+            
+            # Send Slack notification
+            curl -X POST -H 'Content-type: application/json' \
+              --data "{
+                \"channel\": \"#{{workflow.parameters.notification-channel}}\",
+                \"username\": \"ArgoCD Bot\",
+                \"icon_emoji\": \":rocket:\",
+                \"text\": \":white_check_mark: Deployment Success\",
+                \"attachments\": [{
+                  \"color\": \"good\",
+                  \"fields\": [
+                    {\"title\": \"Environment\", \"value\": \"{{inputs.parameters.environment}}\", \"short\": true},
+                    {\"title\": \"Image Tag\", \"value\": \"{{inputs.parameters.image-tag}}\", \"short\": true},
+                    {\"title\": \"Workflow\", \"value\": \"{{workflow.name}}\", \"short\": true},
+                    {\"title\": \"Duration\", \"value\": \"{{workflow.duration}}\", \"short\": true}
+                  ]
+                }]
+              }" \
+              $SLACK_WEBHOOK_URL
+            
+            echo "Success notification sent"
+        env:
+          - name: SLACK_WEBHOOK_URL
+            valueFrom:
+              secretKeyRef:
+                name: notification-secrets
+                key: slack-webhook-url
+  
+  # Failure handling
+  onExit:
+    template: cleanup-and-notify
+  
+  templates:
+    # Cleanup and notification template
+    - name: cleanup-and-notify
+      container:
+        image: curlimages/curl:7.85.0
+        command: [sh, -c]
+        args:
+          - |
+            set -e
+            
+            # Check workflow status
+            if [ "{{workflow.status}}" != "Succeeded" ]; then
+              echo "Workflow failed, sending failure notification"
+              
+              # Send failure notification to Slack
+              curl -X POST -H 'Content-type: application/json' \
+                --data "{
+                  \"channel\": \"#book-network-alerts\",
+                  \"username\": \"ArgoCD Bot\",
+                  \"icon_emoji\": \":exclamation:\",
+                  \"text\": \":x: Deployment Failed\",
+                  \"attachments\": [{
+                    \"color\": \"danger\",
+                    \"fields\": [
+                      {\"title\": \"Environment\", \"value\": \"{{workflow.parameters.environment}}\", \"short\": true},
+                      {\"title\": \"Image Tag\", \"value\": \"{{workflow.parameters.image-tag}}\", \"short\": true},
+                      {\"title\": \"Workflow\", \"value\": \"{{workflow.name}}\", \"short\": true},
+                      {\"title\": \"Status\", \"value\": \"{{workflow.status}}\", \"short\": true},
+                      {\"title\": \"Failed Step\", \"value\": \"{{workflow.failures}}\", \"short\": false}
+                    ]
+                  }]
+                }" \
+                $SLACK_WEBHOOK_URL
+            fi
+            
+            echo "Cleanup completed"
+        env:
+          - name: SLACK_WEBHOOK_URL
+            valueFrom:
+              secretKeyRef:
+                name: notification-secrets
+                key: slack-webhook-url

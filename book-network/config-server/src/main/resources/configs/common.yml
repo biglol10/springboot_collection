@@ -1,0 +1,315 @@
+# =============================================================================
+# 공통 설정 (모든 마이크로서비스)
+# =============================================================================
+# Config Server에서 모든 서비스가 공유하는 설정
+
+# Eureka Client 공통 설정
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER:http://localhost:8761/eureka/}
+    fetch-registry: true
+    register-with-eureka: true
+    registry-fetch-interval-seconds: 30
+    eureka-connection-idle-timeout-seconds: 30
+    eureka-server-read-timeout-seconds: 8
+    eureka-server-connect-timeout-seconds: 5
+    
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+    health-check-url-path: /actuator/health
+    status-page-url-path: /actuator/info
+    metadata-map:
+      version: ${spring.application.version:1.0.0}
+      zone: ${ZONE:default}
+      environment: ${spring.profiles.active:development}
+
+# Spring Boot Actuator 공통 설정
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,env
+      base-path: /actuator
+  
+  endpoint:
+    health:
+      show-details: when-authorized
+      show-components: always
+      probes:
+        enabled: true # Kubernetes 프로브 지원
+    info:
+      enabled: true
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+  
+  health:
+    defaults:
+      enabled: true
+    diskspace:
+      enabled: true
+      threshold: 100MB
+    ping:
+      enabled: true
+    
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: ${spring.profiles.active:development}
+      zone: ${ZONE:default}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      sla:
+        http.server.requests: 100ms,200ms,500ms,1s,2s
+
+# 분산 추적 공통 설정
+spring.sleuth:
+  sampler:
+    probability: ${TRACING_SAMPLE_RATE:0.1} # 기본 10% 샘플링
+  zipkin:
+    base-url: ${ZIPKIN_URL:http://localhost:9411}
+    sender:
+      type: web
+  web:
+    skip-pattern: "/actuator.*|/health.*|/info.*|/metrics.*|/prometheus.*"
+  
+  # 추적 대상 컴포넌트
+  integration:
+    enabled: true
+  scheduled:
+    enabled: true
+  web:
+    client:
+      enabled: true
+  async:
+    enabled: true
+
+# 로깅 공통 설정
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId:-},%X{spanId:-}] [%X{userId:-}] %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId:-},%X{spanId:-}] [%X{userId:-}] %logger{36} - %msg%n"
+  
+  level:
+    org.springframework.web: INFO
+    org.springframework.security: INFO
+    org.springframework.cloud: INFO
+    org.springframework.data: INFO
+    com.netflix: INFO
+    io.github.resilience4j: INFO
+    root: INFO
+  
+  file:
+    max-size: 100MB
+    max-history: 30
+    total-size-cap: 1GB
+
+# 데이터베이스 공통 설정
+spring.datasource:
+  hikari:
+    # 연결 풀 설정
+    maximum-pool-size: ${DB_POOL_SIZE:20}
+    minimum-idle: ${DB_POOL_MIN:5}
+    idle-timeout: 300000 # 5분
+    max-lifetime: 1200000 # 20분
+    connection-timeout: 20000 # 20초
+    
+    # 연결 유효성 검사
+    validation-timeout: 5000
+    leak-detection-threshold: 60000
+    
+    # 성능 최적화
+    auto-commit: false
+    connection-test-query: SELECT 1
+
+# JPA 공통 설정
+spring.jpa:
+  open-in-view: false # OSIV 비활성화 (성능 최적화)
+  show-sql: false
+  
+  hibernate:
+    ddl-auto: validate # 운영환경에서는 validate만 사용
+    naming:
+      physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+      implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl
+    
+  properties:
+    hibernate:
+      # 성능 최적화
+      jdbc:
+        batch_size: 20
+        fetch_size: 100
+      order_inserts: true
+      order_updates: true
+      batch_versioned_data: true
+      
+      # 쿼리 캐시
+      cache:
+        use_second_level_cache: true
+        use_query_cache: true
+        region:
+          factory_class: org.hibernate.cache.ehcache.EhCacheRegionFactory
+      
+      # 통계
+      generate_statistics: true
+      session:
+        events:
+          log:
+            LOG_QUERIES_SLOWER_THAN_MS: 1000
+
+# Redis 공통 설정
+spring.redis:
+  timeout: 2000ms
+  lettuce:
+    pool:
+      max-active: 20
+      max-idle: 10
+      min-idle: 5
+      max-wait: 1000ms
+    shutdown-timeout: 100ms
+
+# 보안 공통 설정
+security:
+  # CORS 기본 설정
+  cors:
+    max-age: 3600
+    allow-credentials: true
+  
+  # JWT 기본 설정
+  jwt:
+    header: Authorization
+    prefix: "Bearer "
+
+# 비즈니스 로직 공통 설정
+business:
+  # 페이징 기본값
+  pagination:
+    default-size: 20
+    max-size: 100
+  
+  # 파일 업로드
+  file:
+    max-size: 10MB
+    allowed-types: 
+      - image/jpeg
+      - image/png
+      - image/gif
+      - application/pdf
+  
+  # 알림 설정
+  notification:
+    batch-size: 100
+    retry-attempts: 3
+    retry-delay: 1000
+
+---
+# 개발환경 공통 설정
+spring:
+  config:
+    activate:
+      on-profile: development
+
+# 개발환경 Eureka 설정
+eureka:
+  client:
+    eureka-server-connect-timeout-seconds: 10
+    eureka-server-read-timeout-seconds: 10
+  instance:
+    lease-renewal-interval-in-seconds: 10
+    lease-expiration-duration-in-seconds: 30
+
+# 개발환경 데이터베이스 설정
+spring.datasource.hikari:
+  maximum-pool-size: 10
+  minimum-idle: 2
+
+# 개발환경 로깅 (상세)
+logging.level:
+  com.alibou.booknetwork: DEBUG
+  org.springframework.web: DEBUG
+  org.springframework.security: DEBUG
+  org.hibernate.SQL: DEBUG
+  org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+# 개발환경 분산 추적 (100% 샘플링)
+spring.sleuth.sampler.probability: 1.0
+
+---
+# 스테이징환경 공통 설정
+spring:
+  config:
+    activate:
+      on-profile: staging
+
+# 스테이징 데이터베이스 설정
+spring.datasource.hikari:
+  maximum-pool-size: 15
+  minimum-idle: 3
+
+# 스테이징 로깅
+logging.level:
+  com.alibou.booknetwork: INFO
+  org.hibernate.SQL: INFO
+
+# 스테이징 분산 추적 (50% 샘플링)
+spring.sleuth.sampler.probability: 0.5
+
+---
+# 운영환경 공통 설정
+spring:
+  config:
+    activate:
+      on-profile: production
+
+# 운영환경 Eureka 설정 (안정성 중심)
+eureka:
+  client:
+    eureka-server-connect-timeout-seconds: 15
+    eureka-server-read-timeout-seconds: 15
+    registry-fetch-interval-seconds: 30
+  instance:
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+
+# 운영환경 데이터베이스 설정 (성능 최적화)
+spring.datasource.hikari:
+  maximum-pool-size: 30
+  minimum-idle: 10
+  idle-timeout: 600000 # 10분
+  max-lifetime: 1800000 # 30분
+
+# 운영환경 JPA 설정
+spring.jpa:
+  show-sql: false
+  properties.hibernate:
+    generate_statistics: false # 통계 비활성화 (성능)
+    jdbc.batch_size: 50 # 더 큰 배치 사이즈
+
+# 운영환경 로깅 (최소화)
+logging.level:
+  com.alibou.booknetwork: INFO
+  org.springframework: WARN
+  org.hibernate: WARN
+  root: WARN
+
+# 운영환경 분산 추적 (5% 샘플링)
+spring.sleuth.sampler.probability: 0.05
+
+# 운영환경 보안 강화
+security:
+  cors:
+    allowed-origins: 
+      - https://booknetwork.com
+      - https://app.booknetwork.com
+  
+# 운영환경 비즈니스 설정
+business:
+  pagination:
+    max-size: 50 # 운영환경에서는 더 제한적
+  file:
+    max-size: 5MB # 더 제한적

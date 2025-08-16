@@ -1,0 +1,178 @@
+# =============================================================================
+# API GATEWAY 중앙화된 설정
+# =============================================================================
+# Config Server에서 관리하는 API Gateway 설정
+# 환경별로 다른 값들을 중앙에서 관리
+
+# 공통 설정 (모든 환경)
+spring:
+  cloud:
+    gateway:
+      # Rate Limiting 기본 설정
+      default-filters:
+        - name: RequestRateLimiter
+          args:
+            redis-rate-limiter.replenishRate: 20
+            redis-rate-limiter.burstCapacity: 40
+            key-resolver: "#{@ipKeyResolver}"
+
+# 서비스별 라우팅 설정
+gateway:
+  routes:
+    user-service:
+      path: /api/users/**
+      rate-limit:
+        replenish-rate: 10
+        burst-capacity: 20
+    
+    book-service:
+      path: /api/books/**
+      rate-limit:
+        replenish-rate: 50
+        burst-capacity: 100
+    
+    lending-service:
+      path: /api/lending/**
+      rate-limit:
+        replenish-rate: 5
+        burst-capacity: 10
+
+# Circuit Breaker 설정
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30s
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+
+# 보안 설정
+security:
+  jwt:
+    secret-key: ${JWT_SECRET_KEY:default-secret-key}
+    expiration: 86400000
+  
+  cors:
+    allowed-origins: 
+      - http://localhost:3000
+      - http://localhost:8080
+    allowed-methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - OPTIONS
+    allowed-headers: "*"
+    allow-credentials: true
+
+---
+# 개발환경 설정
+spring:
+  config:
+    activate:
+      on-profile: development
+
+# 개발환경 Redis 설정
+spring.redis:
+  host: localhost
+  port: 6379
+  database: 0
+
+# 관대한 Rate Limiting
+gateway.routes:
+  user-service.rate-limit:
+    replenish-rate: 100
+    burst-capacity: 200
+  book-service.rate-limit:
+    replenish-rate: 200
+    burst-capacity: 400
+
+# 개발용 Circuit Breaker (빠른 테스트)
+resilience4j.circuitbreaker.configs.default:
+  failure-rate-threshold: 80
+  wait-duration-in-open-state: 10s
+
+# CORS 설정 (개발 편의)
+security.cors:
+  allowed-origins: 
+    - "*"
+
+---
+# 스테이징환경 설정
+spring:
+  config:
+    activate:
+      on-profile: staging
+
+# 스테이징 Redis 설정
+spring.redis:
+  host: redis-staging.internal
+  port: 6379
+  password: ${REDIS_PASSWORD}
+  database: 1
+
+# 중간 수준 Rate Limiting
+gateway.routes:
+  user-service.rate-limit:
+    replenish-rate: 20
+    burst-capacity: 40
+  book-service.rate-limit:
+    replenish-rate: 80
+    burst-capacity: 160
+
+# Circuit Breaker (운영과 유사)
+resilience4j.circuitbreaker.configs.default:
+  failure-rate-threshold: 60
+  wait-duration-in-open-state: 20s
+
+---
+# 운영환경 설정
+spring:
+  config:
+    activate:
+      on-profile: production
+
+# 운영 Redis 클러스터 설정
+spring.redis:
+  cluster:
+    nodes:
+      - redis-1.prod.internal:6379
+      - redis-2.prod.internal:6379
+      - redis-3.prod.internal:6379
+  password: ${REDIS_CLUSTER_PASSWORD}
+  timeout: 3000ms
+  lettuce:
+    pool:
+      max-active: 50
+      max-idle: 20
+      min-idle: 10
+
+# 엄격한 Rate Limiting
+gateway.routes:
+  user-service.rate-limit:
+    replenish-rate: 10
+    burst-capacity: 20
+  book-service.rate-limit:
+    replenish-rate: 30
+    burst-capacity: 60
+  lending-service.rate-limit:
+    replenish-rate: 3
+    burst-capacity: 6
+
+# 엄격한 Circuit Breaker
+resilience4j.circuitbreaker.configs.default:
+  failure-rate-threshold: 40
+  wait-duration-in-open-state: 60s
+  sliding-window-size: 20
+  minimum-number-of-calls: 10
+
+# 운영 보안 설정
+security:
+  jwt:
+    secret-key: ${JWT_SECRET_KEY} # 반드시 환경변수에서 로드
+  cors:
+    allowed-origins: 
+      - https://booknetwork.com
+      - https://app.booknetwork.com
+      - https://admin.booknetwork.com

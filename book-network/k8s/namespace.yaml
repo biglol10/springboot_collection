@@ -1,0 +1,48 @@
+# =============================================================================
+# Kubernetes Namespace 정의
+# =============================================================================
+# Book Network 마이크로서비스를 위한 네임스페이스 구성
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: book-network
+  labels:
+    name: book-network
+    environment: production
+    team: book-network-team
+    project: book-network-microservices
+  annotations:
+    description: "Book Network 마이크로서비스 환경"
+    contact: "team@booknetwork.com"
+    cost-center: "engineering"
+
+---
+# 개발환경 네임스페이스
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: book-network-dev
+  labels:
+    name: book-network-dev
+    environment: development
+    team: book-network-team
+    project: book-network-microservices
+  annotations:
+    description: "Book Network 개발 환경"
+    contact: "dev-team@booknetwork.com"
+
+---
+# 스테이징환경 네임스페이스
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: book-network-staging
+  labels:
+    name: book-network-staging
+    environment: staging
+    team: book-network-team
+    project: book-network-microservices
+  annotations:
+    description: "Book Network 스테이징 환경"
+    contact: "qa-team@booknetwork.com"

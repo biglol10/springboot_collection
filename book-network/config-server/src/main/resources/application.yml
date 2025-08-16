@@ -1,0 +1,354 @@
+# =============================================================================
+# CONFIG SERVER CONFIGURATION
+# =============================================================================
+# 중앙화된 설정 관리 서버 구성
+# Git 기반 버전 관리 및 동적 설정 갱신 지원
+
+server:
+  port: 8888 # Config Server 표준 포트
+
+spring:
+  application:
+    name: config-server
+  
+  # 프로파일별 환경 설정
+  profiles:
+    active: native # 로컬 파일 시스템 사용 (개발용)
+  
+  # Spring Cloud Config Server 설정
+  cloud:
+    config:
+      server:
+        # Git 저장소 설정 (운영환경 권장)
+        git:
+          uri: ${CONFIG_REPO_URI:https://github.com/book-network/config-repo.git}
+          clone-on-start: true # 시작 시 저장소 클론
+          default-label: main  # 기본 브랜치
+          timeout: 10         # Git 연결 타임아웃 (초)
+          force-pull: true    # 강제 풀 (충돌 해결)
+          delete-untracked-branches: true # 추적되지 않는 브랜치 삭제
+          refresh-rate: 60    # 저장소 갱신 주기 (초)
+          
+          # 인증 정보 (환경변수로 관리)
+          username: ${CONFIG_REPO_USERNAME:}
+          password: ${CONFIG_REPO_PASSWORD:}
+          
+          # SSH 키 기반 인증 (대안)
+          private-key: ${CONFIG_REPO_PRIVATE_KEY:}
+          host-key: ${CONFIG_REPO_HOST_KEY:}
+          host-key-algorithm: ${CONFIG_REPO_HOST_KEY_ALGORITHM:ssh-rsa}
+          
+          # 검색 경로 설정
+          search-paths:
+            - "configs/{application}"     # 서비스별 폴더
+            - "configs/common"           # 공통 설정
+            - "configs/{application}/{profile}" # 서비스+환경별
+            
+          # 저장소별 설정 (멀티 저장소 지원)
+          repos:
+            # 개발환경 전용 저장소
+            development:
+              pattern: "*-development"
+              uri: ${DEV_CONFIG_REPO_URI:https://github.com/book-network/config-dev.git}
+              clone-on-start: true
+              
+            # 운영환경 전용 저장소 (보안 강화)
+            production:
+              pattern: "*-production"
+              uri: ${PROD_CONFIG_REPO_URI:https://github.com/book-network/config-prod.git}
+              clone-on-start: true
+              username: ${PROD_CONFIG_USERNAME:}
+              password: ${PROD_CONFIG_PASSWORD:}
+        
+        # 로컬 파일 시스템 설정 (개발환경)
+        native:
+          search-locations:
+            - classpath:/configs/     # 클래스패스 내 설정
+            - file:./configs/         # 현재 디렉토리
+            - file:/etc/book-network/ # 시스템 설정 디렉토리
+        
+        # 암호화/복호화 설정
+        encrypt:
+          enabled: true
+          key: ${CONFIG_ENCRYPT_KEY:book-network-secret-key-2024}
+          key-store:
+            location: ${CONFIG_KEYSTORE_LOCATION:classpath:config-server.jks}
+            password: ${CONFIG_KEYSTORE_PASSWORD:changeit}
+            alias: ${CONFIG_KEYSTORE_ALIAS:config-server-key}
+            type: ${CONFIG_KEYSTORE_TYPE:JKS}
+        
+        # 기본 설정
+        default-application-name: application
+        default-profile: default
+        
+        # 오버라이드 허용 설정
+        override-none: false         # 로컬 설정으로 오버라이드 허용
+        override-system-properties: false # 시스템 프로퍼티 오버라이드 방지
+        
+        # 설정 서빙 방식
+        serve-plain-text: false      # 평문 텍스트 서빙 비활성화
+        accept-empty: true          # 빈 설정 허용
+        
+        # Git 저장소 건강성 체크
+        health:
+          repositories:
+            development:
+              label: main
+              name: health-check
+              profiles: development
+            production:
+              label: main  
+              name: health-check
+              profiles: production
+
+  # 보안 설정
+  security:
+    user:
+      name: ${CONFIG_SERVER_USERNAME:config-admin}
+      password: ${CONFIG_SERVER_PASSWORD:config-secret-2024}
+      roles: ADMIN
+
+# =============================================================================
+# EUREKA CLIENT CONFIGURATION
+# =============================================================================
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER:http://localhost:8761/eureka/}
+    fetch-registry: true
+    register-with-eureka: true
+    registry-fetch-interval-seconds: 30
+  
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+    metadata-map:
+      configPath: /actuator/health
+      management.context-path: /actuator
+
+# =============================================================================
+# MONITORING & OBSERVABILITY
+# =============================================================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,env,configprops,refresh,busrefresh
+      base-path: /actuator
+  
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+    env:
+      show-values: when-authorized # 인증된 경우만 값 표시
+    configprops:
+      show-values: when-authorized
+    refresh:
+      enabled: true
+    busrefresh:
+      enabled: true
+  
+  # 헬스 체크 설정
+  health:
+    config:
+      enabled: true # Config Server 상태 체크
+    diskspace:
+      enabled: true
+      threshold: 100MB
+    
+  # 메트릭 설정
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: ${spring.application.name}
+      environment: ${spring.profiles.active}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+
+# =============================================================================
+# LOGGING CONFIGURATION
+# =============================================================================
+logging:
+  level:
+    org.springframework.cloud.config: INFO
+    org.springframework.web: INFO
+    org.springframework.security: INFO
+    org.eclipse.jgit: INFO
+    root: INFO
+  
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [%X{traceId:-},%X{spanId:-}] %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [%X{traceId:-},%X{spanId:-}] %logger{36} - %msg%n"
+  
+  file:
+    name: logs/config-server.log
+    max-size: 100MB
+    max-history: 30
+
+# =============================================================================
+# APPLICATION INFO
+# =============================================================================
+info:
+  app:
+    name: Book Network Configuration Server
+    description: Centralized configuration management for microservices
+    version: 1.0.0
+    author: Book Network Team
+  
+  config:
+    server:
+      git:
+        enabled: false # Git 사용 여부
+        repositories: 2 # 관리 중인 저장소 수
+      native:
+        enabled: true  # 네이티브 사용 여부
+        locations: 3   # 검색 위치 수
+      encryption:
+        enabled: true  # 암호화 지원 여부
+  
+  features:
+    - Centralized Configuration
+    - Git-based Version Control
+    - Environment-specific Profiles
+    - Dynamic Configuration Refresh
+    - Property Encryption/Decryption
+    - Multi-repository Support
+    - Health Monitoring
+
+---
+# =============================================================================
+# GIT PROFILE (Git 저장소 기반)
+# =============================================================================
+spring:
+  config:
+    activate:
+      on-profile: git
+
+  cloud:
+    config:
+      server:
+        git:
+          uri: ${CONFIG_REPO_URI:https://github.com/book-network/config-repo.git}
+          clone-on-start: true
+          timeout: 30
+          refresh-rate: 300 # 5분마다 갱신
+          
+          # 고급 Git 설정
+          skip-ssl-validation: false # SSL 검증 (운영환경에서는 false)
+          basedir: /tmp/config-repo  # 로컬 저장소 경로
+          
+          # 인증 설정
+          username: ${CONFIG_REPO_USERNAME}
+          password: ${CONFIG_REPO_PASSWORD}
+          
+          # 검색 경로
+          search-paths:
+            - "microservices/{application}"
+            - "common"
+            - "environments/{profile}"
+
+# Git 사용 시 네이티브 비활성화
+spring.profiles.include: "!native"
+
+---
+# =============================================================================
+# VAULT PROFILE (HashiCorp Vault 연동)
+# =============================================================================
+spring:
+  config:
+    activate:
+      on-profile: vault
+
+  cloud:
+    vault:
+      host: ${VAULT_HOST:localhost}
+      port: ${VAULT_PORT:8200}
+      scheme: ${VAULT_SCHEME:http}
+      authentication: token
+      token: ${VAULT_TOKEN:your-vault-token}
+      kv:
+        enabled: true
+        backend: secret
+        profile-separator: "/"
+        application-name: book-network
+
+---
+# =============================================================================
+# DEVELOPMENT PROFILE
+# =============================================================================
+spring:
+  config:
+    activate:
+      on-profile: development
+
+# 개발환경 편의 설정
+spring.cloud.config.server:
+  git:
+    refresh-rate: 10 # 10초마다 갱신 (빠른 개발)
+    clone-on-start: true
+    force-pull: true
+  
+  # 암호화 키 (개발용)
+  encrypt:
+    key: dev-secret-key-2024
+
+# 상세 로깅
+logging:
+  level:
+    org.springframework.cloud.config: DEBUG
+    org.springframework.web: DEBUG
+    org.eclipse.jgit: DEBUG
+
+---
+# =============================================================================
+# PRODUCTION PROFILE
+# =============================================================================
+spring:
+  config:
+    activate:
+      on-profile: production
+
+# 운영환경 보안 강화
+spring.cloud.config.server:
+  git:
+    refresh-rate: 300 # 5분마다 갱신
+    timeout: 60       # 긴 타임아웃
+    clone-on-start: true
+    force-pull: true
+    
+    # SSH 키 기반 인증 (권장)
+    private-key: ${CONFIG_REPO_PRIVATE_KEY}
+    host-key: ${CONFIG_REPO_HOST_KEY}
+    
+  # 강력한 암호화 키
+  encrypt:
+    key: ${CONFIG_ENCRYPT_KEY} # 환경변수에서 로드
+    
+  # 보안 설정
+  override-none: true          # 로컬 오버라이드 방지
+  override-system-properties: true # 시스템 프로퍼티 오버라이드 방지
+
+# 인증 강화
+spring.security.user:
+  name: ${CONFIG_SERVER_USERNAME}
+  password: ${CONFIG_SERVER_PASSWORD}
+  roles: CONFIG_ADMIN
+
+# 로깅 레벨 조정
+logging:
+  level:
+    org.springframework.cloud.config: WARN
+    org.springframework.web: WARN
+    root: WARN
+
+# 메트릭 샘플링 조정
+management:
+  tracing:
+    sampling:
+      probability: 0.1 # 10% 샘플링

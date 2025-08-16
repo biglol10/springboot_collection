@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <springProfile name="dev,prod">
+        <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+        
+        <!-- Console Appender - 개발 환경용 -->
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <includeContext>true</includeContext>
+                <includeMdc>true</includeMdc>
+                <customFields>{"service":"book-network","environment":"${spring.profiles.active:-unknown}"}</customFields>
+                <fieldNames>
+                    <timestamp>@timestamp</timestamp>
+                    <message>message</message>
+                    <level>level</level>
+                    <thread>thread</thread>
+                    <logger>logger</logger>
+                </fieldNames>
+            </encoder>
+        </appender>
+
+        <!-- File Appender - 로컬 파일 저장 -->
+        <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>logs/book-network.log</file>
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <includeContext>true</includeContext>
+                <includeMdc>true</includeMdc>
+                <customFields>{"service":"book-network","environment":"${spring.profiles.active:-unknown}"}</customFields>
+            </encoder>
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>logs/book-network.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+                <maxFileSize>100MB</maxFileSize>
+                <maxHistory>30</maxHistory>
+                <totalSizeCap>1GB</totalSizeCap>
+            </rollingPolicy>
+        </appender>
+
+        <!-- Elasticsearch Appender - ELK Stack 연동 -->
+        <appender name="ELASTICSEARCH" class="com.internetitem.logback.elasticsearch.ElasticsearchAppender">
+            <url>http://localhost:9200/_bulk</url>
+            <index>book-network-logs-%date{yyyy.MM.dd}</index>
+            <type>_doc</type>
+            <loggerName>es-logger</loggerName>
+            <errorLoggerName>es-error-logger</errorLoggerName>
+            <connectTimeout>30000</connectTimeout>
+            <errorsToStderr>false</errorsToStderr>
+            <includeCallerData>true</includeCallerData>
+            <logsToStderr>false</logsToStderr>
+            <maxQueueSize>104857600</maxQueueSize>
+            <maxRetries>3</maxRetries>
+            <readTimeout>30000</readTimeout>
+            <sleepTime>250</sleepTime>
+            <rawJsonMessage>false</rawJsonMessage>
+            <includeMdc>true</includeMdc>
+            <excludeMdcKeyName>password</excludeMdcKeyName>
+            <excludeMdcKeyName>secret</excludeMdcKeyName>
+            <excludeMdcKeyName>token</excludeMdcKeyName>
+        </appender>
+
+        <!-- Async Appender - 성능 최적화 -->
+        <appender name="ASYNC_ELASTICSEARCH" class="ch.qos.logback.classic.AsyncAppender">
+            <appender-ref ref="ELASTICSEARCH"/>
+            <queueSize>1000</queueSize>
+            <discardingThreshold>0</discardingThreshold>
+            <includeCallerData>true</includeCallerData>
+            <neverBlock>false</neverBlock>
+        </appender>
+
+        <!-- 에러 전용 Appender -->
+        <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>logs/book-network-error.log</file>
+            <filter class="ch.qos.logback.classic.filter.LevelFilter">
+                <level>ERROR</level>
+                <onMatch>ACCEPT</onMatch>
+                <onMismatch>DENY</onMismatch>
+            </filter>
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <includeContext>true</includeContext>
+                <includeMdc>true</includeMdc>
+                <customFields>{"service":"book-network","log_type":"error","environment":"${spring.profiles.active:-unknown}"}</customFields>
+            </encoder>
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>logs/book-network-error.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+                <maxFileSize>50MB</maxFileSize>
+                <maxHistory>90</maxHistory>
+            </rollingPolicy>
+        </appender>
+
+        <!-- 비즈니스 이벤트 전용 Appender -->
+        <appender name="BUSINESS_EVENTS" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>logs/business-events.log</file>
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <includeContext>true</includeContext>
+                <includeMdc>true</includeMdc>
+                <customFields>{"service":"book-network","log_type":"business_event","environment":"${spring.profiles.active:-unknown}"}</customFields>
+            </encoder>
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>logs/business-events.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+                <maxFileSize>100MB</maxFileSize>
+                <maxHistory>365</maxHistory>
+            </rollingPolicy>
+        </appender>
+
+        <!-- 로거 설정 -->
+        <logger name="com.alibou.booknetwork" level="INFO" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+            <appender-ref ref="ASYNC_ELASTICSEARCH"/>
+            <appender-ref ref="ERROR_FILE"/>
+        </logger>
+
+        <!-- 비즈니스 이벤트 로거 -->
+        <logger name="BUSINESS_EVENTS" level="INFO" additivity="false">
+            <appender-ref ref="BUSINESS_EVENTS"/>
+            <appender-ref ref="ASYNC_ELASTICSEARCH"/>
+        </logger>
+
+        <!-- 보안 이벤트 로거 -->
+        <logger name="SECURITY_EVENTS" level="INFO" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="ASYNC_ELASTICSEARCH"/>
+        </logger>
+
+        <!-- 성능 이벤트 로거 -->
+        <logger name="PERFORMANCE_EVENTS" level="INFO" additivity="false">
+            <appender-ref ref="ASYNC_ELASTICSEARCH"/>
+        </logger>
+
+        <!-- Spring Framework 로깅 레벨 조정 -->
+        <logger name="org.springframework" level="WARN"/>
+        <logger name="org.springframework.security" level="INFO"/>
+        <logger name="org.springframework.web" level="INFO"/>
+        <logger name="org.springframework.data.redis" level="WARN"/>
+        
+        <!-- Hibernate 로깅 레벨 조정 -->
+        <logger name="org.hibernate" level="WARN"/>
+        <logger name="org.hibernate.SQL" level="INFO"/>
+        <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>
+
+        <!-- Root Logger -->
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+            <appender-ref ref="ASYNC_ELASTICSEARCH"/>
+        </root>
+    </springProfile>
+
+    <!-- 로컬 개발 환경용 간단한 설정 -->
+    <springProfile name="local">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level [%X{traceId:-},%X{spanId:-}] %logger{36} - %msg%n</pattern>
+            </encoder>
+        </appender>
+
+        <logger name="com.alibou.booknetwork" level="DEBUG"/>
+        <logger name="org.springframework" level="INFO"/>
+        <logger name="org.hibernate" level="INFO"/>
+
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+</configuration>
